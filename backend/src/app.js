@@ -1,32 +1,31 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 
-const pruebaRoutes = require("./routes/prueba.routes");
-
+const routes = require("./routes");
 
 const app = express();
 
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:5174,http://127.0.0.1:5173,http://127.0.0.1:5174")
+    .split(",")
+    .map((origin) => origin.trim());
 
-app.use(cors());
+// permitir comunicacion con React
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Origen no permitido por CORS"));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true
+}));
 
 app.use(express.json());
 
+app.use(routes);
 
-app.use("/api", pruebaRoutes);
-
-
-
-app.get("/",(req,res)=>{
-
-    res.json({
-        mensaje:"API funcionando"
-    });
-
-});
-
-
-app.listen(3000,()=>{
-
-    console.log("Servidor en puerto 3000");
-
-});
+module.exports = app;

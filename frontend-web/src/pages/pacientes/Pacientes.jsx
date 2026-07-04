@@ -1,0 +1,13 @@
+import {useCallback,useEffect,useState} from "react";
+import {apiFetch} from "../../services/api";
+
+const inicial={nombre:"",apellido:"",cedula:"",telefono:"",correo:"",direccion:"",fecha_nacimiento:""};
+export default function Pacientes(){
+ const[rows,setRows]=useState([]),[form,setForm]=useState(inicial),[edit,setEdit]=useState(null),[open,setOpen]=useState(false),[msg,setMsg]=useState("");
+ const load=useCallback(async()=>{try{setRows(await apiFetch("/pacientes"))}catch(e){setMsg(e.message)}},[]);
+ useEffect(()=>{load()},[load]);
+ const save=async e=>{e.preventDefault();setMsg("");try{await apiFetch(edit?`/pacientes/${edit}`:"/pacientes",{method:edit?"PUT":"POST",body:form});setForm(inicial);setEdit(null);setOpen(false);setMsg(edit?"Paciente actualizado":"Paciente creado");load()}catch(error){setMsg(error.message)}};
+ const editar=p=>{setForm({nombre:p.nombre||"",apellido:p.apellido||"",cedula:p.cedula||"",telefono:p.telefono||"",correo:p.correo||"",direccion:p.direccion||"",fecha_nacimiento:p.fecha_nacimiento?.slice(0,10)||""});setEdit(p.id_paciente);setOpen(true)};
+ const eliminar=async id=>{if(!window.confirm("Eliminar este paciente?"))return;try{await apiFetch(`/pacientes/${id}`,{method:"DELETE"});setMsg("Paciente eliminado");load()}catch(error){setMsg(error.message)}};
+ return <section className="module-page"><header className="page-header"><div><h1>Pacientes</h1><p>{rows.length} registros</p></div><button onClick={()=>{setOpen(!open);setEdit(null);setForm(inicial)}}>{open?"Cancelar":"Nuevo paciente"}</button></header>{msg&&<div className="notice">{msg}</div>}{open&&<form className="form-grid" onSubmit={save}>{Object.keys(inicial).map(k=><label key={k}>{k.replaceAll("_"," ")}{k==="direccion"?<textarea value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})}/>:<input type={k==="fecha_nacimiento"?"date":k==="correo"?"email":"text"} required={["nombre","apellido","cedula"].includes(k)} value={form[k]} onChange={e=>setForm({...form,[k]:e.target.value})}/>}</label>)}<div className="form-actions"><button>{edit?"Actualizar":"Guardar"}</button></div></form>}<div className="table-wrap"><table><thead><tr><th>Cedula</th><th>Paciente</th><th>Telefono</th><th>Correo</th><th>Direccion</th><th>Acciones</th></tr></thead><tbody>{rows.map(p=><tr key={p.id_paciente}><td>{p.cedula}</td><td>{p.nombre} {p.apellido}</td><td>{p.telefono}</td><td>{p.correo}</td><td>{p.direccion}</td><td><button onClick={()=>editar(p)}>Editar</button><button className="secondary" onClick={()=>eliminar(p.id_paciente)}>Eliminar</button></td></tr>)}</tbody></table></div></section>
+}

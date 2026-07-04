@@ -1,0 +1,14 @@
+const express=require("express");const auth=require("../../middleware/auth.middleware");
+const rol=require("../../middleware/rol.middleware");const responder=require("../../utils/http");
+const service=require("./inventario.service");const router=express.Router();router.use(auth);
+router.get("/",responder(req=>service.listar(req.query)));
+router.get("/categorias",responder(()=>service.categorias()));
+router.post("/categorias",rol(["Administrador"]),responder(req=>service.crearCategoria(req.body),201));
+router.put("/categorias/:id",rol(["Administrador"]),responder(req=>service.actualizarCategoria(req.params.id,req.body)));
+router.delete("/categorias/:id",rol(["Administrador"]),responder(req=>service.eliminarCategoria(req.params.id)));
+router.get("/ajustes",rol(["Administrador"]),responder(()=>service.ajustes()));
+router.post("/",rol(["Administrador"]),responder(req=>service.crear(req.body,req.usuario,req),201));
+router.put("/:id",rol(["Administrador"]),responder(req=>service.actualizar(req.params.id,req.body,req.usuario,req)));
+router.delete("/:id",rol(["Administrador"]),responder(req=>service.desactivar(req.params.id,req.usuario,req)));
+router.post("/ajustes",rol(["Administrador"]),responder(req=>service.ajustar(req.body,req.usuario,req),201));
+module.exports=router;

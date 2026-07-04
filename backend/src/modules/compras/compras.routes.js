@@ -1,0 +1,12 @@
+const express=require("express");const auth=require("../../middleware/auth.middleware");const rol=require("../../middleware/rol.middleware");const responder=require("../../utils/http");const s=require("./compras.service");const r=express.Router();
+r.use(auth,rol(["Administrador"]));
+r.get("/",responder(()=>s.listar()));
+r.get("/proveedores",responder(()=>s.proveedores()));
+r.post("/proveedores",responder(req=>s.crearProveedor(req.body),201));
+r.put("/proveedores/:id",responder(req=>s.actualizarProveedor(req.params.id,req.body)));
+r.delete("/proveedores/:id",responder(req=>s.eliminarProveedor(req.params.id)));
+r.get("/:id",responder(req=>s.obtener(req.params.id)));
+r.post("/",responder(req=>s.crear(req.body,req.usuario,req),201));
+r.post("/:id/recibir",responder(req=>s.recibir(req.params.id,req.body,req.usuario,req)));
+r.post("/:id/cancelar",responder(req=>s.cancelar(req.params.id)));
+module.exports=r;
