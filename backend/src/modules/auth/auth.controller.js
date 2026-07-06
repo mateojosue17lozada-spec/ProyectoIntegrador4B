@@ -13,7 +13,7 @@ exports.login = async (req, res) => {
         res.json(resultado);
     } catch (error) {
         console.log(error.message);
-        res.status(400).json({ mensaje: error.message });
+        res.status(error.status || 400).json({ mensaje: error.message });
     }
 };
 
@@ -27,7 +27,7 @@ exports.register = async (req, res) => {
         });
     } catch (error) {
         console.log(error.message);
-        res.status(400).json({ mensaje: error.message });
+        res.status(error.status || 400).json({ mensaje: error.message });
     }
 };
 
@@ -42,7 +42,7 @@ exports.solicitarRecuperacion = async (req, res) => {
         res.json(resultado);
     } catch (error) {
         console.log(error.message);
-        res.status(400).json({ mensaje: error.message });
+        res.status(error.status || 400).json({ mensaje: error.message });
     }
 };
 
@@ -57,7 +57,7 @@ exports.restablecerPassword = async (req, res) => {
         res.json(resultado);
     } catch (error) {
         console.log(error.message);
-        res.status(400).json({ mensaje: error.message });
+        res.status(error.status || 400).json({ mensaje: error.message });
     }
 };
 
@@ -70,6 +70,6 @@ exports.logout = async (req, res) => {
         });
         res.json(resultado);
     } catch (error) {
-        res.status(400).json({ mensaje: error.message });
+        res.status(error.status || 400).json({ mensaje: error.message });
     }
 };

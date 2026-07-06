@@ -16,6 +16,15 @@ const generarTokenPlano = () => crypto.randomBytes(32).toString("hex");
 
 const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
 
+const validarPassword = (password) => {
+    if (typeof password !== "string" || password.length < 10 || password.length > 128) {
+        throw Object.assign(new Error("La contraseña debe tener entre 10 y 128 caracteres"), { status: 400 });
+    }
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+        throw Object.assign(new Error("La contraseña debe incluir mayúscula, minúscula y número"), { status: 400 });
+    }
+};
+
 const obtenerUsuarioPorIdentificador = async (identificador) => {
     const valor = normalizarIdentificador(identificador);
 
@@ -62,10 +71,10 @@ const registrarIntentoFallido = async (usuario) => {
     );
 
     if (bloquear) {
-        throw new Error("Usuario bloqueado por tres intentos fallidos");
+        throw Object.assign(new Error("Cuenta bloqueada por tres intentos fallidos"), { status: 423 });
     }
 
-    throw new Error(`Credenciales incorrectas. Intento ${intentos} de ${MAX_INTENTOS}`);
+    throw Object.assign(new Error(`Credenciales incorrectas. Intento ${intentos} de ${MAX_INTENTOS}`), { status: 401 });
 };
 
 exports.login = async ({ identificador, correo, usuario, password, req }) => {
@@ -73,15 +82,16 @@ exports.login = async ({ identificador, correo, usuario, password, req }) => {
     const usuarioEncontrado = await obtenerUsuarioPorIdentificador(valorLogin);
 
     if (!usuarioEncontrado) {
-        throw new Error("Usuario no encontrado");
+        await bcrypt.compare(password || "", "$2b$10$8WzVQZrGMYn0HjHLV7R9B.TvvGSJNXU8NwMJuVsDXXHGr3kKfIHIq");
+        throw Object.assign(new Error("Credenciales incorrectas"), { status: 401 });
     }
 
     if (usuarioEncontrado.activo === false || usuarioEncontrado.estado === false || usuarioEncontrado.estado === "Inactivo") {
-        throw new Error("Usuario inactivo");
+        throw Object.assign(new Error("Credenciales incorrectas"), { status: 401 });
     }
 
     if (usuarioEncontrado.bloqueado === true || usuarioEncontrado.estado === "Bloqueado") {
-        throw new Error("Usuario bloqueado por intentos fallidos");
+        throw Object.assign(new Error("Cuenta bloqueada. Contacte al administrador o restablezca su contraseña"), { status: 423 });
     }
 
     const passwordCorrecto = await bcrypt.compare(password || "", usuarioEncontrado.password);
@@ -176,9 +186,14 @@ exports.register = async (data, req) => {
         id_rol
     } = data;
 
-    if (!password || password.length < 8) {
-        throw new Error("La contrasena debe tener al menos 8 caracteres");
+    validarPassword(password);
+
+    if (!String(nombre || "").trim() || !String(correo || "").trim() || !String(usuario || "").trim() || !id_rol) {
+        throw Object.assign(new Error("Nombre, correo, usuario y rol son obligatorios"), { status: 400 });
     }
+
+    const rolExiste = await pool.query("SELECT 1 FROM roles WHERE id_rol=$1", [id_rol]);
+    if (!rolExiste.rowCount) throw Object.assign(new Error("Rol inválido"), { status: 400 });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -190,8 +205,8 @@ exports.register = async (data, req) => {
         RETURNING id_usuario, nombre, apellido, correo, usuario, cedula, telefono, id_rol
         `,
         [
-            nombre,
-            apellido,
+            String(nombre).trim(),
+            String(apellido || "").trim() || null,
             normalizarIdentificador(correo),
             normalizarIdentificador(usuario),
             passwordHash,
@@ -265,9 +280,7 @@ exports.solicitarRecuperacion = async ({ identificador, correo, req }) => {
 };
 
 exports.restablecerPassword = async ({ token, password, req }) => {
-    if (!password || password.length < 8) {
-        throw new Error("La contrasena debe tener al menos 8 caracteres");
-    }
+    validarPassword(password);
 
     const tokenHash = hashToken(token || "");
 
@@ -312,6 +325,11 @@ exports.restablecerPassword = async ({ token, password, req }) => {
         await client.query(
             "UPDATE recuperacion_password SET usado = TRUE WHERE id_recuperacion = $1",
             [result.rows[0].id_recuperacion]
+        );
+
+        await client.query(
+            "UPDATE sesiones_usuario SET revocada_en = NOW() WHERE id_usuario = $1 AND revocada_en IS NULL",
+            [idUsuario]
         );
 
         await client.query("COMMIT");

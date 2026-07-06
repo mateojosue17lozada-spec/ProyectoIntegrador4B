@@ -2,11 +2,12 @@ const pool=require("../../config/database");
 const registrarAuditoria=require("../../utils/audit");
 
 exports.listar=async(filtros={})=>{
- const values=[]; const where=[];
+ const values=[]; const where=["p.activo=TRUE"];
  if(filtros.codigo){values.push(filtros.codigo);where.push(`p.codigo_barra=$${values.length}`)}
  if(filtros.stock_bajo==="true")where.push("p.stock <= p.stock_minimo");
  const r=await pool.query(`SELECT p.*,c.nombre AS categoria,
-   (p.stock<=p.stock_minimo) AS stock_bajo FROM productos p
+   (p.stock<=p.stock_minimo) AS stock_bajo,
+   CASE WHEN p.costo>0 THEN ROUND(((p.precio-p.costo)/p.costo)*100,2) ELSE NULL END AS margen_porcentaje FROM productos p
    LEFT JOIN categorias_producto c USING(id_categoria)
    ${where.length?`WHERE ${where.join(" AND ")}`:""} ORDER BY p.nombre`,values);
  return r.rows;
@@ -17,19 +18,19 @@ exports.actualizarCategoria=async(id,data)=>{const r=await pool.query("UPDATE ca
 exports.eliminarCategoria=async(id)=>{const r=await pool.query("DELETE FROM categorias_producto WHERE id_categoria=$1 RETURNING *",[id]);if(!r.rows[0])throw Object.assign(new Error("Categoria no encontrada"),{status:404});return r.rows[0]};
 exports.crear=async(data,usuario,req)=>{
  const r=await pool.query(`INSERT INTO productos(id_categoria,codigo_barra,nombre,descripcion,material,
- esfera,cilindro,eje,stock,stock_minimo,costo,precio)
- VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+ esfera,cilindro,eje,stock,stock_minimo,costo,precio,sku,tipo_lente,filtro)
+ VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
  [data.id_categoria||null,data.codigo_barra||null,data.nombre,data.descripcion||null,data.material||null,
- data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock||0),Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0)]);
+ data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock||0),Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0),data.sku||null,data.tipo_lente||null,data.filtro||null]);
  await registrarAuditoria({idUsuario:usuario.id,accion:"PRODUCTO_CREADO",tabla:"productos",registroId:r.rows[0].id_producto,req});
  return r.rows[0];
 };
 exports.actualizar=async(id,data,usuario,req)=>{
  const r=await pool.query(`UPDATE productos SET id_categoria=$1,codigo_barra=$2,nombre=$3,
  descripcion=$4,material=$5,esfera=$6,cilindro=$7,eje=$8,stock_minimo=$9,costo=$10,precio=$11,
- activo=COALESCE($12,activo) WHERE id_producto=$13 RETURNING *`,
+ activo=COALESCE($12,activo),sku=$13,tipo_lente=$14,filtro=$15 WHERE id_producto=$16 RETURNING *`,
  [data.id_categoria||null,data.codigo_barra||null,data.nombre,data.descripcion||null,data.material||null,
- data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0),data.activo,id]);
+ data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0),data.activo,data.sku||null,data.tipo_lente||null,data.filtro||null,id]);
  if(!r.rows[0])throw new Error("Producto no encontrado");
  await registrarAuditoria({idUsuario:usuario.id,accion:"PRODUCTO_ACTUALIZADO",tabla:"productos",registroId:Number(id),req});return r.rows[0];
 };

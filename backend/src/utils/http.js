@@ -10,7 +10,7 @@ const responder = (handler, status = 200) => async (req, res) => {
             return res.status(400).json({ mensaje: error.detail || "Datos incompletos o invalidos" });
         }
         console.error(error);
-        res.status(400).json({ mensaje: error.message || "No se pudo completar la operacion" });
+        res.status(500).json({ mensaje: "Ocurrió un error interno" });
     }
 };
 

@@ -1,3 +1,81 @@
-import {useCallback,useEffect,useState} from "react";import {apiFetch} from "../../services/api";
-const base={id_paciente:"",id_cita:"",motivo:"",antecedentes_personales:"",antecedentes_familiares:"",antecedentes_oculares:"",lensometria:"{}",agudeza_visual:"{}",examen_externo:"",reflejos_pupilares:"",oftalmoscopia:"",diagnostico_cie10:"",diagnostico_descripcion:"",examen_motor:"",observaciones_patologicas:"",tratamiento:""};
-export default function HistoriaClinica(){const[rows,setRows]=useState([]),[form,setForm]=useState(base),[edit,setEdit]=useState(null),[open,setOpen]=useState(false),[msg,setMsg]=useState("");const load=useCallback(async()=>{try{setRows(await apiFetch("/historia"))}catch(e){setMsg(e.message)}},[]);useEffect(()=>{load()},[load]);const save=async e=>{e.preventDefault();try{const body={...form,lensometria:JSON.parse(form.lensometria||"{}"),agudeza_visual:JSON.parse(form.agudeza_visual||"{}")};await apiFetch(edit?`/historia/${edit}`:"/historia",{method:edit?"PUT":"POST",body});setForm(base);setEdit(null);setOpen(false);setMsg("Historia guardada");load()}catch(x){setMsg(x.message)}};const editar=r=>{setForm({...base,...r,lensometria:JSON.stringify(r.lensometria||{}),agudeza_visual:JSON.stringify(r.agudeza_visual||{}),id_cita:r.id_cita||""});setEdit(r.id_historia);setOpen(true)};const bloquear=async id=>{try{await apiFetch(`/historia/${id}/bloquear`,{method:"POST"});setMsg("Historia bloqueada");load()}catch(x){setMsg(x.message)}};return <section className="module-page"><header className="page-header"><div><h1>Historias clinicas</h1><p>Edicion disponible durante 24 horas</p></div><button onClick={()=>{setOpen(!open);setEdit(null);setForm(base)}}>{open?"Cancelar":"Nueva historia"}</button></header>{msg&&<div className="notice">{msg}</div>}{open&&<form className="form-grid" onSubmit={save}>{Object.keys(base).map(k=><label key={k}>{k.replaceAll("_"," ")}{["antecedentes_personales","antecedentes_familiares","antecedentes_oculares","examen_externo","oftalmoscopia","diagnostico_descripcion","observaciones_patologicas","tratamiento"].includes(k)?<textarea value={form[k]??""} onChange={e=>setForm({...form,[k]:e.target.value})}/>:<input required={["id_paciente","motivo"].includes(k)} type={["id_paciente","id_cita"].includes(k)?"number":"text"} value={form[k]??""} onChange={e=>setForm({...form,[k]:e.target.value})}/>}</label>)}<div className="form-actions"><button>{edit?"Actualizar":"Guardar"}</button></div></form>}<div className="table-wrap"><table><thead><tr><th>Paciente</th><th>CIE-10</th><th>Fecha</th><th>Bloqueada</th><th>Acciones</th></tr></thead><tbody>{rows.map(r=><tr key={r.id_historia}><td>{r.paciente_nombre} {r.paciente_apellido}</td><td>{r.diagnostico_cie10}</td><td>{new Date(r.creado_en).toLocaleString()}</td><td>{r.bloqueada_legal?"Si":"No"}</td><td>{!r.bloqueada_legal&&<><button onClick={()=>editar(r)}>Editar</button><button className="secondary" onClick={()=>bloquear(r.id_historia)}>Bloquear</button></>}</td></tr>)}</tbody></table></div></section>}
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Activity, CheckCircle2, Eye, FileHeart, Glasses, Printer, Save, ScanEye, Stethoscope, X } from "lucide-react";
+import { apiFetch } from "../../services/api";
+
+const sections = {
+  lensometria:["od","oi","ao","add","prismas","av_vl_cc","av_vp_cc","tipo_lente","material","filtro","tiempo_uso","distancia_pupilar","observaciones"],
+  agudeza_visual:["av_vl_sc_od","av_vl_sc_oi","av_vl_sc_ao","av_vp_sc_od","av_vp_sc_oi","av_vp_sc_ao","distancia_lejos","distancia_cerca","ph","dominancia","optotipo"],
+  examen_externo:["orbita_cejas_od","orbita_cejas_oi","parpados_pestanas_od","parpados_pestanas_oi","sistema_lagrimal_od","sistema_lagrimal_oi","conjuntiva_esclera_od","conjuntiva_esclera_oi","cornea_camara_od","cornea_camara_oi","iris_pupila_od","iris_pupila_oi","cristalino_od","cristalino_oi","tests_adicionales"],
+  reflejos_pupilares:["consensual_od","consensual_oi","fotomotor_od","fotomotor_oi","acomodativo_od","acomodativo_oi"],
+  oftalmoscopia:["papila_excavacion_od","papila_excavacion_oi","vasos_od","vasos_oi","macula_fijacion_od","macula_fijacion_oi","tapete_od","tapete_oi","regularidad_color_od","regularidad_color_oi"],
+  examen_motor:["nivel_visual","kappa","hirschberg","cover_test","ppc","luces_worth","maddox","ducciones","versiones"],
+  queratometria_refraccion:["queratometria_od","queratometria_oi","miras","astigmatismo_corneal","rx_estatica","rx_dinamica","subjetivo","afinacion","balance_binocular","prueba_ambulatoria","rx_final","add","dnp","av_vl","av_vp"],
+  diagnostico:["cie10","diagnostico_od","diagnostico_oi","diagnostico_motor","patologico_presuntivo"]
+};
+const emptyObject = (keys) => Object.fromEntries(keys.map((key)=>[key,""]));
+const initial = {
+  id_paciente:"",id_cita:"",consultorio:"",motivo:"",
+  anamnesis_general:"",antecedentes_personales_oculares:"",antecedentes_personales_generales:"",
+  antecedentes_familiares_oculares:"",antecedentes_familiares_generales:"",
+  ...Object.fromEntries(Object.entries(sections).map(([key,keys])=>[key,emptyObject(keys)])),
+  observaciones_patologicas:"",tratamiento:"",nombre_examinador:"",nivel_paralelo:"",jornada:"",
+  consentimiento_informado:false,firma_paciente:""
+};
+const label = (value) => value.replaceAll("_"," ").replace(/\b\w/g,(letter)=>letter.toUpperCase());
+const Field = ({name,value,onChange,type="text",wide=false,required=false}) => <label className={wide?"wide":""}>{label(name)}{type==="textarea"?<textarea value={value??""} required={required} onChange={(e)=>onChange(e.target.value)}/>:<input type={type} value={value??""} required={required} onChange={(e)=>onChange(e.target.value)}/>}</label>;
+const Section = ({icon:Icon,title,children}) => <section className="clinical-section"><h2><Icon size={19}/>{title}</h2>{children}</section>;
+const ObjectFields = ({value,keys,onChange,cols=3}) => <div className={`field-grid cols-${cols}`}>{keys.map((key)=><Field key={key} name={key} value={value?.[key]} onChange={(next)=>onChange({...value,[key]:next})} wide={key.includes("observaciones")}/>)}</div>;
+
+export default function HistoriaClinica(){
+  const [rows,setRows]=useState([]),[patients,setPatients]=useState([]),[appointments,setAppointments]=useState([]),[codes,setCodes]=useState([]);
+  const [form,setForm]=useState(initial),[edit,setEdit]=useState(null),[open,setOpen]=useState(false),[message,setMessage]=useState("");
+  const load=useCallback(async()=>{try{const [h,p,c,cie]=await Promise.all([apiFetch("/historia"),apiFetch("/pacientes"),apiFetch("/citas"),apiFetch("/historia/cie10/catalogo")]);setRows(h);setPatients(p);setAppointments(c.filter((item)=>item.pago_previo&&!["Cancelada","No asistio"].includes(item.estado)));setCodes(cie)}catch(error){setMessage(error.message)}},[]);
+  useEffect(()=>{load()},[load]);
+  const patient=useMemo(()=>patients.find((item)=>String(item.id_paciente)===String(form.id_paciente)),[patients,form.id_paciente]);
+  const availableAppointments=appointments.filter((item)=>!form.id_paciente||String(item.id_paciente)===String(form.id_paciente));
+  const setObject=(section,value)=>setForm((current)=>({...current,[section]:value}));
+  const close=()=>{setOpen(false);setEdit(null);setForm(initial)};
+  const save=async(event)=>{event.preventDefault();try{await apiFetch(edit?`/historia/${edit}`:"/historia",{method:edit?"PUT":"POST",body:{...form,diagnostico_cie10:form.diagnostico.cie10}});setMessage("Historia clínica guardada correctamente");close();load()}catch(error){setMessage(error.message)}};
+  const editRow=(row)=>{const merged={...initial,...row};for(const key of Object.keys(sections))merged[key]={...initial[key],...(row[key]||{})};setForm(merged);setEdit(row.id_historia);setOpen(true);window.scrollTo({top:0,behavior:"smooth"})};
+  const block=async(id)=>{try{await apiFetch(`/historia/${id}/bloquear`,{method:"POST"});setMessage("Historia cerrada y protegida legalmente");load()}catch(error){setMessage(error.message)}};
+  const printRow=(row)=>{editRow(row);setTimeout(()=>window.print(),250)};
+  return <section className="module-page">
+    <header className="page-header"><div><span className="eyebrow">Expediente optométrico</span><h1>Historia clínica</h1><p>Registro estructurado, cifrado y editable durante 24 horas.</p></div><button onClick={()=>open?close():(setOpen(true),setForm(initial))}>{open?<><X size={17}/> Cancelar</>:<><FileHeart size={17}/> Nueva historia</>}</button></header>
+    {message&&<div className={`notice ${message.toLowerCase().includes("error")?"error":""}`}>{message}</div>}
+    {open&&<form className="clinical-form" onSubmit={save}>
+      <Section icon={FileHeart} title="Datos generales">
+        <div className="field-grid">
+          <label>Paciente<select required disabled={Boolean(edit)} value={form.id_paciente} onChange={(e)=>setForm({...form,id_paciente:e.target.value,id_cita:""})}><option value="">Seleccione un paciente</option>{patients.map((p)=><option value={p.id_paciente} key={p.id_paciente}>{p.apellido} {p.nombre} · {p.cedula}</option>)}</select></label>
+          <label>Cita pagada<select required disabled={Boolean(edit)} value={form.id_cita} onChange={(e)=>{const ap=appointments.find((a)=>String(a.id_cita)===e.target.value);setForm({...form,id_cita:e.target.value,consultorio:ap?.consultorio||form.consultorio})}}><option value="">Seleccione una cita</option>{availableAppointments.map((c)=><option value={c.id_cita} key={c.id_cita}>#{c.id_cita} · {String(c.fecha_cita).slice(0,10)} {c.hora_cita}</option>)}</select></label>
+          <Field name="consultorio" value={form.consultorio} onChange={(value)=>setForm({...form,consultorio:value})}/>
+          <Field name="nombre_examinador" value={form.nombre_examinador} onChange={(value)=>setForm({...form,nombre_examinador:value})}/>
+          <Field name="nivel_paralelo" value={form.nivel_paralelo} onChange={(value)=>setForm({...form,nivel_paralelo:value})}/>
+          <Field name="jornada" value={form.jornada} onChange={(value)=>setForm({...form,jornada:value})}/>
+        </div>
+        {patient&&<div className="summary-grid" style={{marginTop:16}}><article><span>Paciente</span><strong style={{fontSize:16}}>{patient.nombre} {patient.apellido}</strong></article><article><span>CI</span><strong style={{fontSize:16}}>{patient.cedula}</strong></article><article><span>Nacimiento</span><strong style={{fontSize:16}}>{String(patient.fecha_nacimiento||"—").slice(0,10)}</strong></article><article><span>Contacto</span><strong style={{fontSize:16}}>{patient.telefono||"—"}</strong></article></div>}
+        <div className="field-grid" style={{marginTop:14}}><Field name="motivo_de_consulta" value={form.motivo} onChange={(value)=>setForm({...form,motivo:value})} type="textarea" wide required/></div>
+      </Section>
+      <Section icon={Stethoscope} title="Anamnesis"><div className="field-grid cols-3">
+        {["anamnesis_general","antecedentes_personales_oculares","antecedentes_personales_generales","antecedentes_familiares_oculares","antecedentes_familiares_generales"].map((key)=><Field key={key} name={key} value={form[key]} onChange={(value)=>setForm({...form,[key]:value})} type="textarea" wide={key==="anamnesis_general"}/>)}
+      </div></Section>
+      <Section icon={Glasses} title="Lensometría"><ObjectFields keys={sections.lensometria} value={form.lensometria} onChange={(value)=>setObject("lensometria",value)}/></Section>
+      <Section icon={Eye} title="Agudeza visual"><ObjectFields keys={sections.agudeza_visual} value={form.agudeza_visual} onChange={(value)=>setObject("agudeza_visual",value)}/></Section>
+      <Section icon={ScanEye} title="Examen externo / Biomicroscopía"><ObjectFields keys={sections.examen_externo} value={form.examen_externo} onChange={(value)=>setObject("examen_externo",value)}/></Section>
+      <Section icon={Activity} title="Reflejos pupilares"><ObjectFields keys={sections.reflejos_pupilares} value={form.reflejos_pupilares} onChange={(value)=>setObject("reflejos_pupilares",value)}/></Section>
+      <Section icon={Eye} title="Oftalmoscopía"><ObjectFields keys={sections.oftalmoscopia} value={form.oftalmoscopia} onChange={(value)=>setObject("oftalmoscopia",value)}/></Section>
+      <Section icon={Activity} title="Examen motor"><ObjectFields keys={sections.examen_motor} value={form.examen_motor} onChange={(value)=>setObject("examen_motor",value)}/></Section>
+      <Section icon={ScanEye} title="Queratometría y refracción"><ObjectFields keys={sections.queratometria_refraccion} value={form.queratometria_refraccion} onChange={(value)=>setObject("queratometria_refraccion",value)}/></Section>
+      <Section icon={CheckCircle2} title="Diagnóstico y tratamiento">
+        <div className="field-grid cols-3">
+          <label>Diagnóstico CIE-10<select value={form.diagnostico.cie10} onChange={(e)=>setObject("diagnostico",{...form.diagnostico,cie10:e.target.value})}><option value="">Seleccione</option>{codes.map((code)=><option key={code.codigo} value={code.codigo}>{code.codigo} · {code.descripcion}</option>)}</select></label>
+          {sections.diagnostico.filter((key)=>key!=="cie10").map((key)=><Field key={key} name={key} value={form.diagnostico[key]} onChange={(value)=>setObject("diagnostico",{...form.diagnostico,[key]:value})}/>)}
+          <Field name="observaciones_patologicas" value={form.observaciones_patologicas} onChange={(value)=>setForm({...form,observaciones_patologicas:value})} type="textarea" wide/>
+          <Field name="tratamiento_disposicion_conducta" value={form.tratamiento} onChange={(value)=>setForm({...form,tratamiento:value})} type="textarea" wide/>
+        </div>
+      </Section>
+      <Section icon={CheckCircle2} title="Consentimiento y firma"><div className="field-grid cols-3"><label className="checkbox-label"><input type="checkbox" checked={form.consentimiento_informado} onChange={(e)=>setForm({...form,consentimiento_informado:e.target.checked})}/>Consentimiento informado aceptado</label><Field name="firma_paciente" value={form.firma_paciente} onChange={(value)=>setForm({...form,firma_paciente:value})} required/></div></Section>
+      <div className="sticky-actions"><button type="button" className="secondary" onClick={close}>Cancelar</button><button><Save size={17}/> {edit?"Actualizar historia":"Guardar historia"}</button></div>
+    </form>}
+    {!open&&<div className="table-wrap"><table><thead><tr><th>N.º</th><th>Paciente</th><th>CIE-10</th><th>Fecha</th><th>Estado legal</th><th>Acciones</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id_historia}><td>HC-{String(row.id_historia).padStart(6,"0")}</td><td>{row.paciente_apellido} {row.paciente_nombre}</td><td>{row.diagnostico_cie10||"—"}</td><td>{new Date(row.creado_en).toLocaleString()}</td><td><span className="status-pill"><span/>{row.bloqueada_legal?"Cerrada":"Editable"}</span></td><td><button className="secondary" onClick={()=>printRow(row)}><Printer size={14}/></button>{!row.bloqueada_legal&&<><button onClick={()=>editRow(row)}>Editar</button><button className="secondary" onClick={()=>block(row.id_historia)}>Cerrar</button></>}</td></tr>)}</tbody></table>{!rows.length&&<div className="empty">No hay historias clínicas registradas.</div>}</div>}
+  </section>;
+}

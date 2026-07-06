@@ -1,201 +1,85 @@
-// backend/src/modules/citas/citas.service.js
-
-
 const pool = require("../../config/database");
-
-
-
-
-
-exports.obtener = async()=>{
-
-
-const result = await pool.query(
-
-
-`
-
-SELECT
-
-
-c.id_cita,
-
-c.id_paciente,
-
-c.id_usuario,
-
-
-p.nombre AS paciente_nombre,
-
-
-p.apellido AS paciente_apellido,
-
-
-c.fecha_cita,
-
-
-c.hora_cita,
-
-
-c.motivo,
-
-
-c.estado
-,
-c.observacion,
-c.pago_previo
-
-
-FROM citas c
-
-
-INNER JOIN pacientes p
-
-ON c.id_paciente = p.id_paciente
-
-
-
-ORDER BY c.id_cita DESC
-
-
-`
-
-);
-
-
-
-return result.rows;
-
-
-
-};
-
-
-
-
-
-
-
-exports.crear = async(data)=>{
-
-if(!data.id_paciente) throw Object.assign(new Error("El paciente es obligatorio"),{status:400});
-if(!data.id_usuario) throw Object.assign(new Error("El usuario es obligatorio"),{status:400});
-if(!data.fecha_cita || !data.hora_cita) throw Object.assign(new Error("La fecha y hora son obligatorias"),{status:400});
-
-
-const {
-
-
-id_paciente,
-
-id_usuario,
-
-fecha_cita,
-
-hora_cita,
-
-motivo
-
-
-}=data;
-
-
-
-
-const result = await pool.query(
-
-
-`
-
-INSERT INTO citas
-
-(
-
-id_paciente,
-
-id_usuario,
-
-fecha_cita,
-
-hora_cita,
-
-motivo
-
-)
-
-
-VALUES
-
-($1,$2,$3,$4,$5)
-
-
-RETURNING *
-
-
-`,
-
-
-[
-
-
-id_paciente,
-
-id_usuario,
-
-fecha_cita,
-
-hora_cita,
-
-motivo
-
-
-]
-
-
-);
-
-
-
-return result.rows[0];
-
-
-
-};
-
-exports.eliminar = async (id) => {
-    const result=await pool.query("DELETE FROM citas WHERE id_cita=$1 RETURNING *",[id]);
-    if(!result.rows[0]) throw Object.assign(new Error("Cita no encontrada"),{status:404});
-    return result.rows[0];
-};
-
-exports.actualizarEstado = async (id, data) => {
-    const result = await pool.query(
-        `UPDATE citas SET estado = COALESCE($1,estado), observacion = COALESCE($2,observacion)
-         WHERE id_cita = $3 RETURNING *`,
-        [data.estado || null, data.observacion || null, id]
+const audit = require("../../utils/audit");
+
+const estados = ["Pendiente", "Confirmada", "Pagada", "En atención", "Atendida", "Cancelada", "No asistio"];
+
+exports.obtener = async () => (await pool.query(
+    `SELECT c.*,p.nombre AS paciente_nombre,p.apellido AS paciente_apellido,
+            COALESCE(SUM(pp.monto),0) total_pagado
+     FROM citas c JOIN pacientes p USING(id_paciente)
+     LEFT JOIN pagos_previos pp USING(id_cita)
+     GROUP BY c.id_cita,p.nombre,p.apellido
+     ORDER BY c.fecha_cita DESC,c.hora_cita DESC`
+)).rows;
+
+exports.crear = async (data) => {
+    if (!data.id_paciente || !data.id_usuario || !data.fecha_cita || !data.hora_cita) {
+        throw Object.assign(new Error("Paciente, fecha y hora son obligatorios"), { status: 400 });
+    }
+    const fecha = new Date(`${data.fecha_cita}T${data.hora_cita}`);
+    if (Number.isNaN(fecha.getTime())) throw Object.assign(new Error("Fecha u hora inválida"), { status: 400 });
+
+    const conflicto = await pool.query(
+        `SELECT 1 FROM citas WHERE fecha_cita=$1 AND hora_cita=$2
+         AND estado NOT IN ('Cancelada','No asistio') LIMIT 1`,
+        [data.fecha_cita, data.hora_cita]
     );
-    if (!result.rows[0]) throw new Error("Cita no encontrada");
+    if (conflicto.rowCount) throw Object.assign(new Error("Ya existe una cita en ese horario"), { status: 409 });
+
+    return (await pool.query(
+        `INSERT INTO citas(id_paciente,id_usuario,fecha_cita,hora_cita,motivo,consultorio,tarifa)
+         VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [data.id_paciente,data.id_usuario,data.fecha_cita,data.hora_cita,
+         String(data.motivo || "").trim() || null,String(data.consultorio || "").trim() || null,
+         Number(data.tarifa || 0)]
+    )).rows[0];
+};
+
+exports.actualizarEstado = async (id, data, usuario, req) => {
+    if (!estados.includes(data.estado)) throw Object.assign(new Error("Estado de cita inválido"), { status: 400 });
+    if (["Pagada", "En atención", "Atendida"].includes(data.estado)) {
+        const pago = await pool.query("SELECT COALESCE(SUM(monto),0) total FROM pagos_previos WHERE id_cita=$1", [id]);
+        if (Number(pago.rows[0].total) <= 0) {
+            throw Object.assign(new Error("No puede avanzar la cita sin pago previo"), { status: 402 });
+        }
+    }
+    if (data.estado === "En atención" && !["Administrador", "Optometra"].includes(usuario.rol)) {
+        throw Object.assign(new Error("Solo el optómetra puede iniciar la atención"), { status: 403 });
+    }
+    const result = await pool.query(
+        `UPDATE citas SET estado=$1,observacion=COALESCE($2,observacion),actualizado_en=NOW()
+         WHERE id_cita=$3 RETURNING *`, [data.estado,data.observacion || null,id]
+    );
+    if (!result.rows[0]) throw Object.assign(new Error("Cita no encontrada"), { status: 404 });
+    await audit({ idUsuario: usuario.id, accion: "CITA_ESTADO_ACTUALIZADO", tabla: "citas", registroId: Number(id), detalle: { estado: data.estado }, req });
     return result.rows[0];
 };
 
-exports.registrarPagoPrevio = async (id, data, usuario) => {
-    if(!Number.isFinite(Number(data.monto)) || Number(data.monto)<=0) throw Object.assign(new Error("El monto debe ser mayor a cero"),{status:400});
-    if(!data.forma_pago) throw Object.assign(new Error("La forma de pago es obligatoria"),{status:400});
+exports.registrarPagoPrevio = async (id, data, usuario, req) => {
+    const monto = Number(data.monto);
+    const formas = ["Efectivo", "Tarjeta", "Transferencia", "Credito", "Mixto"];
+    if (!Number.isFinite(monto) || monto <= 0) throw Object.assign(new Error("El monto debe ser mayor a cero"), { status: 400 });
+    if (!formas.includes(data.forma_pago)) throw Object.assign(new Error("Forma de pago inválida"), { status: 400 });
+
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
         const cita = await client.query("SELECT * FROM citas WHERE id_cita=$1 FOR UPDATE", [id]);
-        if (!cita.rows[0]) throw new Error("Cita no encontrada");
+        if (!cita.rows[0]) throw Object.assign(new Error("Cita no encontrada"), { status: 404 });
+        if (["Cancelada", "Atendida"].includes(cita.rows[0].estado)) throw Object.assign(new Error("La cita no admite pagos"), { status: 409 });
         const pago = await client.query(
             `INSERT INTO pagos_previos(id_cita,id_usuario,monto,forma_pago,referencia)
              VALUES($1,$2,$3,$4,$5) RETURNING *`,
-            [id, usuario.id, Number(data.monto), data.forma_pago, data.referencia || null]
+            [id,usuario.id,monto,data.forma_pago,String(data.referencia || "").trim() || null]
         );
-        await client.query("UPDATE citas SET pago_previo=TRUE,estado='Pagada' WHERE id_cita=$1", [id]);
+        await client.query("UPDATE citas SET pago_previo=TRUE,estado='Pagada',actualizado_en=NOW() WHERE id_cita=$1", [id]);
         await client.query("COMMIT");
+        await audit({ idUsuario: usuario.id, accion: "PAGO_PREVIO_REGISTRADO", tabla: "pagos_previos", registroId: pago.rows[0].id_pago_previo, detalle: { id_cita: Number(id), monto, forma_pago: data.forma_pago }, req });
         return pago.rows[0];
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;
     } finally { client.release(); }
 };
+
+exports.cancelar = async (id, usuario, req) => exports.actualizarEstado(id, { estado: "Cancelada" }, usuario, req);

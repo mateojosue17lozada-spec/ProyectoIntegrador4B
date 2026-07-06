@@ -468,3 +468,6 @@ ALTER TABLE abonos_cxc ENABLE ROW LEVEL SECURITY;
 ALTER TABLE cuentas_por_pagar ENABLE ROW LEVEL SECURITY;
 ALTER TABLE abonos_cxp ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sesiones_usuario ENABLE ROW LEVEL SECURITY;
+
+-- Las ampliaciones posteriores al esquema base se mantienen como migraciones
+-- versionadas. Ejecutar supabase/migrations/20260703000100_production_hardening.sql.

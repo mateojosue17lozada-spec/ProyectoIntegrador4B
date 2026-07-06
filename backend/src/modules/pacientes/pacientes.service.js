@@ -1,42 +1,58 @@
 const pool = require("../../config/database");
 
+const campos = [
+    "nombre", "apellido", "cedula", "telefono", "correo", "direccion",
+    "fecha_nacimiento", "lugar_nacimiento", "genero", "ocupacion",
+    "procedencia", "uso_lentes", "ultimo_control"
+];
+
 const validar = (data) => {
-    const requerido = (mensaje) => Object.assign(new Error(mensaje),{status:400});
-    if (!String(data.nombre || "").trim()) throw requerido("El nombre es obligatorio");
-    if (!String(data.apellido || "").trim()) throw requerido("El apellido es obligatorio");
-    if (!String(data.cedula || "").trim()) throw requerido("La cedula es obligatoria");
+    for (const campo of ["nombre", "apellido", "cedula"]) {
+        if (!String(data[campo] || "").trim()) {
+            throw Object.assign(new Error(`${campo} es obligatorio`), { status: 400 });
+        }
+    }
+    if (data.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.correo)) {
+        throw Object.assign(new Error("Correo inválido"), { status: 400 });
+    }
 };
 
 exports.obtener = async () => (await pool.query(
-    "SELECT * FROM pacientes ORDER BY id_paciente DESC"
+    "SELECT * FROM pacientes WHERE activo=TRUE ORDER BY apellido,nombre"
 )).rows;
 
 exports.crear = async (data) => {
     validar(data);
+    const values = campos.map((campo) => {
+        if (campo === "uso_lentes") return data[campo] === true || data[campo] === "true";
+        return typeof data[campo] === "string" ? data[campo].trim() || null : data[campo] ?? null;
+    });
     const result = await pool.query(
-        `INSERT INTO pacientes
-         (nombre,apellido,cedula,telefono,fecha_nacimiento,correo,direccion)
-         VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-        [data.nombre.trim(),data.apellido.trim(),data.cedula.trim(),data.telefono||null,
-         data.fecha_nacimiento||null,data.correo?.trim()||null,data.direccion?.trim()||null]
+        `INSERT INTO pacientes(${campos.join(",")})
+         VALUES(${campos.map((_, index) => `$${index + 1}`).join(",")}) RETURNING *`, values
     );
     return result.rows[0];
 };
 
 exports.actualizar = async (id, data) => {
     validar(data);
+    const values = campos.map((campo) => {
+        if (campo === "uso_lentes") return data[campo] === true || data[campo] === "true";
+        return typeof data[campo] === "string" ? data[campo].trim() || null : data[campo] ?? null;
+    });
+    const set = campos.map((campo, index) => `${campo}=$${index + 1}`).join(",");
     const result = await pool.query(
-        `UPDATE pacientes SET nombre=$1,apellido=$2,cedula=$3,telefono=$4,
-         fecha_nacimiento=$5,correo=$6,direccion=$7 WHERE id_paciente=$8 RETURNING *`,
-        [data.nombre.trim(),data.apellido.trim(),data.cedula.trim(),data.telefono||null,
-         data.fecha_nacimiento||null,data.correo?.trim()||null,data.direccion?.trim()||null,id]
+        `UPDATE pacientes SET ${set} WHERE id_paciente=$${campos.length + 1} AND activo=TRUE RETURNING *`,
+        [...values, id]
     );
-    if (!result.rows[0]) throw Object.assign(new Error("Paciente no encontrado"),{status:404});
+    if (!result.rows[0]) throw Object.assign(new Error("Paciente no encontrado"), { status: 404 });
     return result.rows[0];
 };
 
 exports.eliminar = async (id) => {
-    const result = await pool.query("DELETE FROM pacientes WHERE id_paciente=$1 RETURNING *",[id]);
-    if (!result.rows[0]) throw Object.assign(new Error("Paciente no encontrado"),{status:404});
+    const result = await pool.query(
+        "UPDATE pacientes SET activo=FALSE WHERE id_paciente=$1 AND activo=TRUE RETURNING *", [id]
+    );
+    if (!result.rows[0]) throw Object.assign(new Error("Paciente no encontrado"), { status: 404 });
     return result.rows[0];
 };

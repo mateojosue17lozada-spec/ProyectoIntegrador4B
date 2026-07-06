@@ -21,6 +21,7 @@ const carteraRoutes = require("./modules/cartera/cartera.routes");
 const recetasRoutes = require("./modules/recetas/recetas.routes");
 
 const comprasRoutes = require("./modules/compras/compras.routes");
+const dashboardRoutes = require("./modules/dashboard/dashboard.routes");
 
 
 
@@ -47,6 +48,7 @@ router.use("/api/cartera", carteraRoutes);
 router.use("/api/recetas", recetasRoutes);
 
 router.use("/api/compras", comprasRoutes);
+router.use("/api/dashboard", dashboardRoutes);
 
 
 module.exports = router;

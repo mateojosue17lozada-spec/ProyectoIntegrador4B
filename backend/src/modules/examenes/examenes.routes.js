@@ -1,78 +1,12 @@
-// backend/src/modules/examenes/examenes.routes.js
-
-
 const express = require("express");
-
-const router = express.Router();
-
-
 const auth = require("../../middleware/auth.middleware");
-
+const rol = require("../../middleware/rol.middleware");
 const controller = require("./examenes.controller");
 
-
-
-
-
-router.get(
-
-"/",
-
-auth,
-
-controller.obtener
-
-);
-
-
-
-
-
-
-router.post(
-
-"/",
-
-auth,
-
-controller.crear
-
-);
-
-
-
-
-
-
-
-router.put(
-
-"/:id",
-
-auth,
-
-controller.actualizar
-
-);
-
-
-
-
-
-
-
-router.delete(
-
-"/:id",
-
-auth,
-
-controller.eliminar
-
-);
-
-
-
-
+const router = express.Router();
+router.use(auth, rol(["Administrador", "Optometra"]));
+router.get("/", controller.obtener);
+router.post("/", controller.crear);
+router.put("/:id", controller.actualizar);
 
 module.exports = router;

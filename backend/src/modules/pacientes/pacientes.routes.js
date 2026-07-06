@@ -8,12 +8,14 @@ const router = express.Router();
 const auth = require("../../middleware/auth.middleware");
 
 const controller = require("./pacientes.controller");
+const rol = require("../../middleware/rol.middleware");
 
 
 
 router.get(
 "/",
 auth,
+rol(["Administrador", "Optometra", "Cajero", "Vendedor"]),
 controller.obtener
 );
 
@@ -22,6 +24,7 @@ controller.obtener
 router.post(
 "/",
 auth,
+rol(["Administrador", "Optometra", "Vendedor"]),
 controller.crear
 );
 
@@ -30,6 +33,7 @@ controller.crear
 router.put(
 "/:id",
 auth,
+rol(["Administrador", "Optometra"]),
 controller.actualizar
 );
 
@@ -40,6 +44,7 @@ controller.actualizar
 router.delete(
 "/:id",
 auth,
+rol(["Administrador"]),
 controller.eliminar
 );
 

@@ -8,5 +8,5 @@ r.delete("/proveedores/:id",responder(req=>s.eliminarProveedor(req.params.id)));
 r.get("/:id",responder(req=>s.obtener(req.params.id)));
 r.post("/",responder(req=>s.crear(req.body,req.usuario,req),201));
 r.post("/:id/recibir",responder(req=>s.recibir(req.params.id,req.body,req.usuario,req)));
-r.post("/:id/cancelar",responder(req=>s.cancelar(req.params.id)));
+r.post("/:id/cancelar",responder(req=>s.cancelar(req.params.id,req.usuario,req)));
 module.exports=r;

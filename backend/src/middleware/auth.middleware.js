@@ -13,9 +13,13 @@ module.exports = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const result = await pool.query(
-            `SELECT 1 FROM sesiones_usuario
-             WHERE id_sesion = $1 AND id_usuario = $2
-               AND revocada_en IS NULL AND expira_en > NOW()`,
+            `SELECT u.id_usuario, u.nombre, u.correo, r.nombre_rol
+             FROM sesiones_usuario s
+             JOIN usuarios u ON u.id_usuario = s.id_usuario
+             JOIN roles r ON r.id_rol = u.id_rol
+             WHERE s.id_sesion = $1 AND s.id_usuario = $2
+               AND s.revocada_en IS NULL AND s.expira_en > NOW()
+               AND u.estado = TRUE AND u.bloqueado = FALSE`,
             [decoded.jti, decoded.id]
         );
 
@@ -23,7 +27,14 @@ module.exports = async (req, res, next) => {
             return res.status(401).json({ mensaje: "Sesion expirada o cerrada" });
         }
 
-        req.usuario = decoded;
+        const actual = result.rows[0];
+        req.usuario = {
+            ...decoded,
+            id: actual.id_usuario,
+            nombre: actual.nombre,
+            correo: actual.correo,
+            rol: actual.nombre_rol
+        };
         return next();
     } catch (error) {
         return res.status(401).json({ mensaje: "Token invalido" });

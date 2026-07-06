@@ -1,33 +1,9 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-
-
-export const ProtectedRoute = ({children})=>{
-
-
-const {user}=useAuth();
-
-
-
-
-if(!user){
-
-
-return (
-
-<Navigate to="/login" replace />
-
-);
-
-
-}
-
-
-
-
-return children;
-
-
-
+export const ProtectedRoute = ({ children, roles }) => {
+    const { user } = useAuth();
+    if (!user) return <Navigate to="/login" replace />;
+    if (roles && !roles.includes(user.rol)) return <Navigate to="/dashboard" replace />;
+    return children;
 };

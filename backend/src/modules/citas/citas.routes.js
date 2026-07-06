@@ -10,6 +10,7 @@ const auth = require("../../middleware/auth.middleware");
 const controller = require("./citas.controller");
 const responder = require("../../utils/http");
 const service = require("./citas.service");
+const rol = require("../../middleware/rol.middleware");
 
 
 
@@ -17,6 +18,7 @@ const service = require("./citas.service");
 router.get(
 "/",
 auth,
+rol(["Administrador","Optometra","Cajero","Vendedor"]),
 controller.obtener
 );
 
@@ -26,12 +28,13 @@ controller.obtener
 router.post(
 "/",
 auth,
+rol(["Administrador","Cajero","Vendedor"]),
 controller.crear
 );
 
-router.patch("/:id", auth, responder((req) => service.actualizarEstado(req.params.id, req.body)));
-router.post("/:id/pago-previo", auth, responder((req) => service.registrarPagoPrevio(req.params.id, req.body, req.usuario), 201));
-router.delete("/:id",auth,controller.eliminar);
+router.patch("/:id", auth, rol(["Administrador","Optometra","Cajero","Vendedor"]), responder((req) => service.actualizarEstado(req.params.id, req.body, req.usuario, req)));
+router.post("/:id/pago-previo", auth, rol(["Administrador","Cajero"]), responder((req) => service.registrarPagoPrevio(req.params.id, req.body, req.usuario, req), 201));
+router.delete("/:id",auth,rol(["Administrador"]),responder((req)=>service.cancelar(req.params.id,req.usuario,req)));
 
 
 

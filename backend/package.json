@@ -6,7 +6,9 @@
   "scripts": {
     "test": "node --test",
     "dev": "nodemon ./src/server.js",
-    "start": "node ./src/server.js"
+    "start": "node ./src/server.js",
+    "email:verify": "node ./src/scripts/verifyEmail.js",
+    "db:seed-demo": "node ./src/scripts/seedDemo.js"
   },
   "keywords": [],
   "author": "",
@@ -14,12 +16,13 @@
   "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
-    "mssql": "^12.5.5",
+    "nodemailer": "^9.0.3",
     "pg": "^8.22.0"
   },
   "devDependencies": {
