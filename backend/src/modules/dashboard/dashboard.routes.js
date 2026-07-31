@@ -1,10 +1,11 @@
 const express = require("express");
 const auth = require("../../middleware/auth.middleware");
+const rol = require("../../middleware/rol.middleware");
 const responder = require("../../utils/http");
 const pool = require("../../config/database");
 
 const router = express.Router();
-router.get("/", auth, responder(async (req) => {
+router.get("/", auth, rol(["Administrador", "Optometra", "Cajero", "Vendedor"]), responder(async (req) => {
     const [pacientes,citas,stock,historias] = await Promise.all([
         pool.query("SELECT COUNT(*)::int total FROM pacientes WHERE activo=TRUE"),
         pool.query(`SELECT COUNT(*)::int total,COUNT(*) FILTER(WHERE pago_previo)::int pagadas,

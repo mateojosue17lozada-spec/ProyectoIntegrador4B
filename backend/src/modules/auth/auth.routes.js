@@ -10,12 +10,12 @@ const validarRol = require("../../middleware/rol.middleware");
 const { rateLimit } = require("express-rate-limit");
 
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
+    windowMs: 2 * 60 * 1000,
     limit: 10,
     standardHeaders: "draft-8",
     legacyHeaders: false,
     skipSuccessfulRequests: true,
-    message: { mensaje: "Demasiados intentos. Espere 15 minutos" }
+    message: { mensaje: "Demasiados intentos. Espere 2 minutos" }
 });
 
 
@@ -50,9 +50,12 @@ router.post(
 authLimiter,
 controller.restablecerPassword
 );
+router.get("/reset-password/validate", authLimiter, controller.validarToken);
 
 router.post("/logout", auth, controller.logout);
 router.get("/me", auth, (req, res) => res.json({ usuario: req.usuario }));
+router.get("/profile", auth, controller.perfil);
+router.patch("/profile", auth, controller.actualizarPerfil);
 
 
 

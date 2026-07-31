@@ -22,6 +22,7 @@ const recetasRoutes = require("./modules/recetas/recetas.routes");
 
 const comprasRoutes = require("./modules/compras/compras.routes");
 const dashboardRoutes = require("./modules/dashboard/dashboard.routes");
+const rolesPermisosRoutes = require("./modules/rolesPermisos/rolesPermisos.routes");
 
 
 
@@ -49,6 +50,7 @@ router.use("/api/recetas", recetasRoutes);
 
 router.use("/api/compras", comprasRoutes);
 router.use("/api/dashboard", dashboardRoutes);
+router.use("/api/roles-permisos", rolesPermisosRoutes);
 
 
 module.exports = router;

@@ -74,6 +74,7 @@ const enviarConResend = async ({ correo, contenido }) => {
 };
 
 const enviarRecuperacion = async ({ correo, nombre, token }) => {
+    if (process.env.NODE_ENV === "test") return true;
     const contenido = contenidoRecuperacion({ nombre, token });
     try {
         if (await enviarConGmail({ correo, contenido })) return true;

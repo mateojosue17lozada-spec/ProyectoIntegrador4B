@@ -14,10 +14,10 @@ exports.crear = async (data) => {
         await client.query("BEGIN");
         await verificarPagoCita(data.id_cita, data.id_paciente, client);
         const result = await client.query(
-            `INSERT INTO examen_visual(id_paciente,id_cita,ojo_derecho,ojo_izquierdo,diagnostico,observacion)
-             VALUES($1,$2,$3,$4,$5,$6) RETURNING *`,
+            `INSERT INTO examen_visual(id_paciente,id_cita,ojo_derecho,ojo_izquierdo,diagnostico,observacion,esquema_ocular)
+             VALUES($1,$2,$3,$4,$5,$6,$7::jsonb) RETURNING *`,
             [data.id_paciente,data.id_cita,data.ojo_derecho || null,data.ojo_izquierdo || null,
-             data.diagnostico || null,data.observacion || null]
+             data.diagnostico || null,data.observacion || null,JSON.stringify(data.esquema_ocular||{})]
         );
         await client.query("UPDATE citas SET estado='En atención',actualizado_en=NOW() WHERE id_cita=$1", [data.id_cita]);
         await client.query("COMMIT");
@@ -30,9 +30,9 @@ exports.crear = async (data) => {
 
 exports.actualizar = async (id, data) => {
     const result = await pool.query(
-        `UPDATE examen_visual SET ojo_derecho=$1,ojo_izquierdo=$2,diagnostico=$3,observacion=$4
-         WHERE id_examen=$5 AND fecha_examen > NOW()-INTERVAL '24 hours' RETURNING *`,
-        [data.ojo_derecho || null,data.ojo_izquierdo || null,data.diagnostico || null,data.observacion || null,id]
+        `UPDATE examen_visual SET ojo_derecho=$1,ojo_izquierdo=$2,diagnostico=$3,observacion=$4,esquema_ocular=$5::jsonb
+         WHERE id_examen=$6 AND fecha_examen > NOW()-INTERVAL '24 hours' RETURNING *`,
+        [data.ojo_derecho || null,data.ojo_izquierdo || null,data.diagnostico || null,data.observacion || null,JSON.stringify(data.esquema_ocular||{}),id]
     );
     if (!result.rows[0]) throw Object.assign(new Error("Examen no encontrado o fuera del plazo de edición"), { status: 409 });
     return result.rows[0];

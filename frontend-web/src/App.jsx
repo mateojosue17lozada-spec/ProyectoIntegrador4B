@@ -16,6 +16,7 @@ import Facturacion from "./pages/facturacion/Facturacion";
 import Caja from "./pages/caja/Caja";
 import Cartera from "./pages/cartera/Cartera";
 import Usuarios from "./pages/usuarios/Usuarios";
+import RolesPermisos from "./pages/roles/RolesPermisos";
 
 const permit = (roles, element) => <ProtectedRoute roles={roles}>{element}</ProtectedRoute>;
 
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="caja" element={permit(["Administrador","Cajero"],<Caja/>)}/>
             <Route path="cartera" element={permit(["Administrador","Cajero"],<Cartera/>)}/>
             <Route path="usuarios" element={permit(["Administrador"],<Usuarios/>)}/>
+            <Route path="roles-permisos" element={permit(["Administrador"],<RolesPermisos/>)}/>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace/>}/>
     </Routes></BrowserRouter></AuthProvider>;

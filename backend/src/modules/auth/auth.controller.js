@@ -1,4 +1,5 @@
 const service = require("./auth.service");
+const logger = require("../../utils/logger");
 
 exports.login = async (req, res) => {
     try {
@@ -12,8 +13,8 @@ exports.login = async (req, res) => {
 
         res.json(resultado);
     } catch (error) {
-        console.log(error.message);
-        res.status(error.status || 400).json({ mensaje: error.message });
+        logger.warn("Inicio de sesion rechazado", { eventCode: "LOGIN_REJECTED", reason: error.internalCode || "INVALID_CREDENTIALS" });
+        res.status(401).json({ mensaje: "Usuario o contraseña incorrectos." });
     }
 };
 
@@ -26,7 +27,7 @@ exports.register = async (req, res) => {
             usuario
         });
     } catch (error) {
-        console.log(error.message);
+        logger.warn("Registro de usuario rechazado", { eventCode: "USER_REGISTRATION_REJECTED", reason: error.name });
         res.status(error.status || 400).json({ mensaje: error.message });
     }
 };
@@ -41,7 +42,7 @@ exports.solicitarRecuperacion = async (req, res) => {
 
         res.json(resultado);
     } catch (error) {
-        console.log(error.message);
+        logger.warn("Solicitud de recuperacion rechazada", { eventCode: "PASSWORD_RESET_REQUEST_REJECTED", reason: error.internalCode || error.name });
         res.status(error.status || 400).json({ mensaje: error.message });
     }
 };
@@ -56,7 +57,7 @@ exports.restablecerPassword = async (req, res) => {
 
         res.json(resultado);
     } catch (error) {
-        console.log(error.message);
+        logger.warn("Restablecimiento rechazado", { eventCode: "PASSWORD_RESET_REJECTED", reason: error.internalCode || error.name });
         res.status(error.status || 400).json({ mensaje: error.message });
     }
 };
@@ -72,4 +73,17 @@ exports.logout = async (req, res) => {
     } catch (error) {
         res.status(error.status || 400).json({ mensaje: error.message });
     }
+};
+
+exports.validarToken = async (req,res) => {
+    try { res.json(await service.validarTokenRecuperacion(req.query.token)); }
+    catch (error) { res.status(error.status || 400).json({ mensaje:error.message }); }
+};
+exports.perfil = async (req,res) => {
+    try { res.json(await service.perfil(req.usuario.id)); }
+    catch (error) { res.status(error.status || 400).json({ mensaje:error.message }); }
+};
+exports.actualizarPerfil = async (req,res) => {
+    try { res.json(await service.actualizarPerfil(req.usuario.id,req.body,req)); }
+    catch (error) { res.status(error.status || 400).json({ mensaje:error.message }); }
 };

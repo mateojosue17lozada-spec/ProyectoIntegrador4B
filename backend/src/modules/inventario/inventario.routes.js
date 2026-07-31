@@ -1,7 +1,7 @@
 const express=require("express");const auth=require("../../middleware/auth.middleware");
 const rol=require("../../middleware/rol.middleware");const responder=require("../../utils/http");
 const service=require("./inventario.service");const router=express.Router();router.use(auth);
-router.get("/",rol(["Administrador","Cajero","Vendedor"]),responder(req=>service.listar(req.query)));
+router.get("/",rol(["Administrador","Optometra","Cajero","Vendedor"]),responder(req=>service.listar(req.query)));
 router.get("/categorias",rol(["Administrador","Cajero","Vendedor"]),responder(()=>service.categorias()));
 router.post("/categorias",rol(["Administrador"]),responder(req=>service.crearCategoria(req.body),201));
 router.put("/categorias/:id",rol(["Administrador"]),responder(req=>service.actualizarCategoria(req.params.id,req.body)));

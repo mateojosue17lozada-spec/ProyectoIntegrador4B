@@ -1,9 +1,12 @@
 const pool=require("../../config/database");
 const registrarAuditoria=require("../../utils/audit");
+const imagen=(value)=>{if(!value)return null;if(!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value)||value.length>2200000)throw Object.assign(new Error("Imagen invalida o mayor a 1.5 MB"),{status:400});return value};
 
 exports.listar=async(filtros={})=>{
- const values=[]; const where=["p.activo=TRUE"];
- if(filtros.codigo){values.push(filtros.codigo);where.push(`p.codigo_barra=$${values.length}`)}
+ const values=[]; const where=[];
+ if(filtros.activo!=="todos")where.push(`p.activo=${filtros.activo==="false"?"FALSE":"TRUE"}`);
+ if(filtros.codigo){values.push(filtros.codigo);where.push(`(p.codigo_barra=$${values.length} OR p.sku=$${values.length})`)}
+ if(filtros.q){values.push(`%${String(filtros.q).trim()}%`);where.push(`(p.nombre ILIKE $${values.length} OR p.codigo_barra ILIKE $${values.length} OR p.sku ILIKE $${values.length})`)}
  if(filtros.stock_bajo==="true")where.push("p.stock <= p.stock_minimo");
  const r=await pool.query(`SELECT p.*,c.nombre AS categoria,
    (p.stock<=p.stock_minimo) AS stock_bajo,
@@ -18,19 +21,19 @@ exports.actualizarCategoria=async(id,data)=>{const r=await pool.query("UPDATE ca
 exports.eliminarCategoria=async(id)=>{const r=await pool.query("DELETE FROM categorias_producto WHERE id_categoria=$1 RETURNING *",[id]);if(!r.rows[0])throw Object.assign(new Error("Categoria no encontrada"),{status:404});return r.rows[0]};
 exports.crear=async(data,usuario,req)=>{
  const r=await pool.query(`INSERT INTO productos(id_categoria,codigo_barra,nombre,descripcion,material,
- esfera,cilindro,eje,stock,stock_minimo,costo,precio,sku,tipo_lente,filtro)
- VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+ esfera,cilindro,eje,stock,stock_minimo,costo,precio,sku,tipo_lente,filtro,imagen_data,forma_montura,color_montura)
+ VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
  [data.id_categoria||null,data.codigo_barra||null,data.nombre,data.descripcion||null,data.material||null,
- data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock||0),Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0),data.sku||null,data.tipo_lente||null,data.filtro||null]);
+ data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock||0),Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0),data.sku||null,data.tipo_lente||null,data.filtro||null,imagen(data.imagen_data),data.forma_montura||null,data.color_montura||null]);
  await registrarAuditoria({idUsuario:usuario.id,accion:"PRODUCTO_CREADO",tabla:"productos",registroId:r.rows[0].id_producto,req});
  return r.rows[0];
 };
 exports.actualizar=async(id,data,usuario,req)=>{
  const r=await pool.query(`UPDATE productos SET id_categoria=$1,codigo_barra=$2,nombre=$3,
  descripcion=$4,material=$5,esfera=$6,cilindro=$7,eje=$8,stock_minimo=$9,costo=$10,precio=$11,
- activo=COALESCE($12,activo),sku=$13,tipo_lente=$14,filtro=$15 WHERE id_producto=$16 RETURNING *`,
+ activo=COALESCE($12,activo),sku=$13,tipo_lente=$14,filtro=$15,imagen_data=COALESCE($16,imagen_data),forma_montura=$17,color_montura=$18 WHERE id_producto=$19 RETURNING *`,
  [data.id_categoria||null,data.codigo_barra||null,data.nombre,data.descripcion||null,data.material||null,
- data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0),data.activo,data.sku||null,data.tipo_lente||null,data.filtro||null,id]);
+ data.esfera||null,data.cilindro||null,data.eje||null,Number(data.stock_minimo||0),Number(data.costo||0),Number(data.precio||0),data.activo,data.sku||null,data.tipo_lente||null,data.filtro||null,imagen(data.imagen_data),data.forma_montura||null,data.color_montura||null,id]);
  if(!r.rows[0])throw new Error("Producto no encontrado");
  await registrarAuditoria({idUsuario:usuario.id,accion:"PRODUCTO_ACTUALIZADO",tabla:"productos",registroId:Number(id),req});return r.rows[0];
 };

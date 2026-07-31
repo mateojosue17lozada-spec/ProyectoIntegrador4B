@@ -9,6 +9,12 @@ const enviarRecuperacion = require("../../utils/email");
 
 const MAX_INTENTOS = 3;
 const MINUTOS_RESET = 30;
+const LOGIN_MESSAGE = "Usuario o contraseña incorrectos.";
+const loginLockMinutes = () => {
+    const value = Number(process.env.LOGIN_LOCK_MINUTES || 15);
+    return Number.isFinite(value) && value > 0 ? Math.min(value, 1440) : 15;
+};
+const authError = (internalCode) => Object.assign(new Error(LOGIN_MESSAGE), { status: 401, internalCode });
 
 const normalizarIdentificador = (valor) => String(valor || "").trim().toLowerCase();
 
@@ -49,7 +55,8 @@ const limpiarIntentosFallidos = async (idUsuario) => {
         `
         UPDATE usuarios
         SET intentos_fallidos = 0,
-            bloqueado = FALSE
+            bloqueado = FALSE,
+            bloqueado_hasta = NULL
         WHERE id_usuario = $1
         `,
         [idUsuario]
@@ -57,24 +64,22 @@ const limpiarIntentosFallidos = async (idUsuario) => {
 };
 
 const registrarIntentoFallido = async (usuario) => {
-    const intentos = Number(usuario.intentos_fallidos || 0) + 1;
-    const bloquear = intentos >= MAX_INTENTOS;
-
-    await pool.query(
+    const result = await pool.query(
         `
         UPDATE usuarios
-        SET intentos_fallidos = $1,
-            bloqueado = $2
+        SET intentos_fallidos = LEAST(intentos_fallidos + 1, $1),
+            ultimo_intento_fallido_en = NOW(),
+            bloqueado = (intentos_fallidos + 1 >= $1),
+            bloqueado_hasta = CASE WHEN intentos_fallidos + 1 >= $1
+                THEN NOW() + ($2::text || ' minutes')::interval ELSE NULL END
         WHERE id_usuario = $3
+          AND (bloqueado_hasta IS NULL OR bloqueado_hasta <= NOW())
+        RETURNING intentos_fallidos, bloqueado
         `,
-        [intentos, bloquear, usuario.id_usuario]
+        [MAX_INTENTOS, loginLockMinutes(), usuario.id_usuario]
     );
 
-    if (bloquear) {
-        throw Object.assign(new Error("Cuenta bloqueada por tres intentos fallidos"), { status: 423 });
-    }
-
-    throw Object.assign(new Error(`Credenciales incorrectas. Intento ${intentos} de ${MAX_INTENTOS}`), { status: 401 });
+    throw authError(result.rows[0]?.bloqueado ? "LOGIN_BLOCKED" : "LOGIN_FAILED");
 };
 
 exports.login = async ({ identificador, correo, usuario, password, req }) => {
@@ -83,15 +88,20 @@ exports.login = async ({ identificador, correo, usuario, password, req }) => {
 
     if (!usuarioEncontrado) {
         await bcrypt.compare(password || "", "$2b$10$8WzVQZrGMYn0HjHLV7R9B.TvvGSJNXU8NwMJuVsDXXHGr3kKfIHIq");
-        throw Object.assign(new Error("Credenciales incorrectas"), { status: 401 });
+        throw authError("LOGIN_FAILED_UNKNOWN");
     }
 
     if (usuarioEncontrado.activo === false || usuarioEncontrado.estado === false || usuarioEncontrado.estado === "Inactivo") {
-        throw Object.assign(new Error("Credenciales incorrectas"), { status: 401 });
+        throw authError("LOGIN_INACTIVE_USER");
     }
 
-    if (usuarioEncontrado.bloqueado === true || usuarioEncontrado.estado === "Bloqueado") {
-        throw Object.assign(new Error("Cuenta bloqueada. Contacte al administrador o restablezca su contraseña"), { status: 423 });
+    if (usuarioEncontrado.bloqueado_hasta && new Date(usuarioEncontrado.bloqueado_hasta).getTime() > Date.now()) {
+        await registrarAuditoria({ idUsuario: usuarioEncontrado.id_usuario, accion: "LOGIN_BLOCKED", tabla: "usuarios", registroId: usuarioEncontrado.id_usuario, detalle: { resultado: "fallido", motivo: "LOGIN_BLOCKED" }, req });
+        throw authError("LOGIN_BLOCKED");
+    }
+    if (usuarioEncontrado.bloqueado === true || usuarioEncontrado.bloqueado_hasta) {
+        await limpiarIntentosFallidos(usuarioEncontrado.id_usuario);
+        usuarioEncontrado.intentos_fallidos = 0;
     }
 
     const passwordCorrecto = await bcrypt.compare(password || "", usuarioEncontrado.password);
@@ -99,7 +109,7 @@ exports.login = async ({ identificador, correo, usuario, password, req }) => {
     if (!passwordCorrecto) {
         await registrarAuditoria({
             idUsuario: usuarioEncontrado.id_usuario,
-            accion: "LOGIN_FALLIDO",
+            accion: "LOGIN_FAILED",
             tabla: "usuarios",
             registroId: usuarioEncontrado.id_usuario,
             req
@@ -111,7 +121,7 @@ exports.login = async ({ identificador, correo, usuario, password, req }) => {
     await limpiarIntentosFallidos(usuarioEncontrado.id_usuario);
 
     await pool.query(
-        "UPDATE usuarios SET ultimo_login = NOW() WHERE id_usuario = $1",
+        "UPDATE usuarios SET ultimo_login=NOW(),intentos_fallidos=0,bloqueado=FALSE,bloqueado_hasta=NULL WHERE id_usuario=$1",
         [usuarioEncontrado.id_usuario]
     );
 
@@ -136,7 +146,7 @@ exports.login = async ({ identificador, correo, usuario, password, req }) => {
 
     await registrarAuditoria({
         idUsuario: usuarioEncontrado.id_usuario,
-        accion: "LOGIN_EXITOSO",
+        accion: "LOGIN_SUCCESS",
         tabla: "usuarios",
         registroId: usuarioEncontrado.id_usuario,
         req
@@ -231,7 +241,7 @@ exports.register = async (data, req) => {
 exports.solicitarRecuperacion = async ({ identificador, correo, req }) => {
     const usuarioEncontrado = await obtenerUsuarioPorIdentificador(identificador || correo);
 
-    if (!usuarioEncontrado) {
+    if (!usuarioEncontrado || usuarioEncontrado.estado === false || usuarioEncontrado.activo === false) {
         return {
             mensaje: "Si el usuario existe, se enviaran instrucciones de recuperacion"
         };
@@ -293,12 +303,14 @@ exports.restablecerPassword = async ({ token, password, req }) => {
 
         const result = await client.query(
             `
-            SELECT id_recuperacion, id_usuario
-            FROM recuperacion_password
-            WHERE token = $1
-              AND expiracion > NOW()
-              AND usado = FALSE
-            ORDER BY id_recuperacion DESC
+            SELECT rp.id_recuperacion, rp.id_usuario
+            FROM recuperacion_password rp
+            JOIN usuarios u ON u.id_usuario=rp.id_usuario
+            WHERE rp.token = $1
+              AND rp.expiracion > NOW()
+              AND rp.usado = FALSE
+              AND u.estado = TRUE
+            ORDER BY rp.id_recuperacion DESC
             LIMIT 1
             FOR UPDATE
             `,
@@ -316,7 +328,8 @@ exports.restablecerPassword = async ({ token, password, req }) => {
             UPDATE usuarios
             SET password = $1,
                 intentos_fallidos = 0,
-                bloqueado = FALSE
+                bloqueado = FALSE,
+                bloqueado_hasta = NULL
             WHERE id_usuario = $2
             `,
             [passwordHash, idUsuario]
@@ -349,4 +362,41 @@ exports.restablecerPassword = async ({ token, password, req }) => {
     });
 
     return { mensaje: "Contrasena actualizada correctamente" };
+};
+
+exports.validarTokenRecuperacion = async (token) => {
+    const tokenHash = hashToken(token || "");
+    const result = await pool.query(
+        `SELECT 1 FROM recuperacion_password rp JOIN usuarios u ON u.id_usuario=rp.id_usuario
+         WHERE rp.token=$1 AND rp.expiracion>NOW() AND rp.usado=FALSE AND u.estado=TRUE LIMIT 1`, [tokenHash]
+    );
+    if (!result.rowCount) throw Object.assign(new Error("Token inválido o expirado"), { status: 400 });
+    return { valido: true };
+};
+
+exports.perfil = async (id) => {
+    const result = await pool.query(
+        `SELECT u.id_usuario,u.nombre,u.apellido,u.correo,u.usuario,u.cedula,u.telefono,
+                u.fecha_nacimiento,u.ultimo_login,u.estado,r.nombre_rol rol,
+                (SELECT COUNT(*)::int FROM sesiones_usuario s
+                 WHERE s.id_usuario=u.id_usuario AND s.revocada_en IS NULL AND s.expira_en>NOW()) sesiones_activas
+         FROM usuarios u JOIN roles r USING(id_rol) WHERE u.id_usuario=$1`, [id]
+    );
+    if (!result.rows[0]) throw Object.assign(new Error("Usuario no encontrado"), { status: 404 });
+    const actividad = await pool.query(
+        `SELECT accion,tabla_afectada,fecha FROM auditoria
+         WHERE id_usuario=$1 ORDER BY fecha DESC LIMIT 5`, [id]
+    );
+    return { ...result.rows[0], actividad_reciente: actividad.rows };
+};
+
+exports.actualizarPerfil = async (id, data, req) => {
+    if (!String(data.nombre || "").trim()) throw Object.assign(new Error("El nombre es obligatorio"), { status: 400 });
+    const result = await pool.query(
+        `UPDATE usuarios SET nombre=$1,apellido=$2,telefono=$3,fecha_nacimiento=$4
+         WHERE id_usuario=$5 RETURNING id_usuario,nombre,apellido,correo,usuario,cedula,telefono,fecha_nacimiento`,
+        [String(data.nombre).trim(),String(data.apellido || "").trim() || null,data.telefono || null,data.fecha_nacimiento || null,id]
+    );
+    await registrarAuditoria({ idUsuario:id, accion:"PERFIL_ACTUALIZADO", tabla:"usuarios", registroId:id, req });
+    return result.rows[0];
 };

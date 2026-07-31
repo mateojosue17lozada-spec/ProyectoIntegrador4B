@@ -1,5 +1,5 @@
 module.exports = () => {
-    const required = ["DATABASE_URL", "JWT_SECRET"];
+    const required = [process.env.NODE_ENV === "test" ? "TEST_DATABASE_URL" : "DATABASE_URL", "JWT_SECRET"];
     if (process.env.NODE_ENV === "production") required.push("DATA_ENCRYPTION_KEY");
 
     const missing = required.filter((name) => !String(process.env[name] || "").trim());
@@ -12,5 +12,8 @@ module.exports = () => {
     }
     if (process.env.DATA_ENCRYPTION_KEY && process.env.DATA_ENCRYPTION_KEY.length < 32) {
         throw new Error("DATA_ENCRYPTION_KEY debe tener al menos 32 caracteres");
+    }
+    if (process.env.NODE_ENV === "production" && !String(process.env.CORS_ORIGIN || "").trim()) {
+        throw new Error("CORS_ORIGIN es obligatoria en produccion");
     }
 };

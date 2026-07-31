@@ -1,12 +1,23 @@
 const jwt = require("jsonwebtoken");
 
 const pool = require("../config/database");
+const logger = require("../utils/logger");
+
+const AUTH_DEBUG = process.env.AUTH_DEBUG === "true";
+
+const logAuthReject = (req, motivo, detalle = {}) => {
+    if (!AUTH_DEBUG) return;
+    logger.warn("Solicitud autenticada rechazada", { eventCode: "AUTH_REJECTED", reason: motivo, method: req.method, path: req.originalUrl, ...detalle });
+};
 
 module.exports = async (req, res, next) => {
     const authorization = req.headers.authorization || "";
     const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
 
     if (!token) {
+        logAuthReject(req, "Authorization Bearer ausente o vacio", {
+            authorizationRecibido: Boolean(authorization)
+        });
         return res.status(401).json({ mensaje: "Token requerido" });
     }
 
@@ -24,6 +35,10 @@ module.exports = async (req, res, next) => {
         );
 
         if (result.rowCount === 0) {
+            logAuthReject(req, "sesion no existe, expiro, fue revocada o usuario bloqueado", {
+                usuarioId: decoded.id,
+                exp: decoded.exp ? new Date(decoded.exp * 1000).toISOString() : null
+            });
             return res.status(401).json({ mensaje: "Sesion expirada o cerrada" });
         }
 
@@ -37,6 +52,9 @@ module.exports = async (req, res, next) => {
         };
         return next();
     } catch (error) {
+        logAuthReject(req, error.name || "jwt_verify_error", {
+            errorType: error.name
+        });
         return res.status(401).json({ mensaje: "Token invalido" });
     }
 };

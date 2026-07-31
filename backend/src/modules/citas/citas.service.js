@@ -3,14 +3,24 @@ const audit = require("../../utils/audit");
 
 const estados = ["Pendiente", "Confirmada", "Pagada", "En atención", "Atendida", "Cancelada", "No asistio"];
 
-exports.obtener = async () => (await pool.query(
+exports.obtener = async (filters = {}) => {
+    const values = [], where = [];
+    if (filters.desde) { values.push(filters.desde); where.push(`c.fecha_cita >= $${values.length}::date`); }
+    if (filters.hasta) { values.push(filters.hasta); where.push(`c.fecha_cita <= $${values.length}::date`); }
+    if (filters.estado && filters.estado !== "Todos") { values.push(filters.estado); where.push(`c.estado = $${values.length}`); }
+    if (filters.paciente) { values.push(`%${String(filters.paciente).trim()}%`); where.push(`concat_ws(' ',p.nombre,p.apellido) ILIKE $${values.length}`); }
+    return (await pool.query(
     `SELECT c.*,p.nombre AS paciente_nombre,p.apellido AS paciente_apellido,
+            concat_ws(' ',u.nombre,u.apellido) AS profesional_nombre,
             COALESCE(SUM(pp.monto),0) total_pagado
      FROM citas c JOIN pacientes p USING(id_paciente)
+     JOIN usuarios u ON u.id_usuario=c.id_usuario
      LEFT JOIN pagos_previos pp USING(id_cita)
-     GROUP BY c.id_cita,p.nombre,p.apellido
-     ORDER BY c.fecha_cita DESC,c.hora_cita DESC`
+     ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+     GROUP BY c.id_cita,p.nombre,p.apellido,u.nombre,u.apellido
+     ORDER BY c.fecha_cita,c.hora_cita`, values
 )).rows;
+};
 
 exports.crear = async (data) => {
     if (!data.id_paciente || !data.id_usuario || !data.fecha_cita || !data.hora_cita) {

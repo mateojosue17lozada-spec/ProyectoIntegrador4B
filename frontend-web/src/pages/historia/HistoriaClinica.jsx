@@ -23,8 +23,11 @@ const initial = {
 };
 const label = (value) => value.replaceAll("_"," ").replace(/\b\w/g,(letter)=>letter.toUpperCase());
 const Field = ({name,value,onChange,type="text",wide=false,required=false}) => <label className={wide?"wide":""}>{label(name)}{type==="textarea"?<textarea value={value??""} required={required} onChange={(e)=>onChange(e.target.value)}/>:<input type={type} value={value??""} required={required} onChange={(e)=>onChange(e.target.value)}/>}</label>;
-const Section = ({icon:Icon,title,children}) => <section className="clinical-section"><h2><Icon size={19}/>{title}</h2>{children}</section>;
+const slug = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
+const Section = ({icon:Icon,title,children}) => <section id={slug(title)} className="clinical-section"><h2><Icon size={19}/>{title}</h2>{children}</section>;
 const ObjectFields = ({value,keys,onChange,cols=3}) => <div className={`field-grid cols-${cols}`}>{keys.map((key)=><Field key={key} name={key} value={value?.[key]} onChange={(next)=>onChange({...value,[key]:next})} wide={key.includes("observaciones")}/>)}</div>;
+const clinicalColor=(text)=>{const value=String(text||"").toLowerCase();if(/normal|sano|sin alter/.test(value))return "#22c55e";if(/catarata|opacidad/.test(value))return "#94a3b8";if(/pterigion|amarill/.test(value))return "#f59e0b";if(/inflama|edema/.test(value))return "#f97316";if(/lesion|úlcera|ulcera/.test(value))return "#8b5cf6";if(value.trim())return "#ef4444";return "#38bdf8"};
+const ClinicalEye=({side,text})=>{const color=clinicalColor(text);return <div className="eye-editor"><strong>{side}</strong><svg viewBox="0 0 240 125"><path d="M12 63 Q60 8 120 12 Q180 8 228 63 Q180 117 120 113 Q60 117 12 63Z" fill="#fff" stroke="#31566a" strokeWidth="5"/><circle cx="120" cy="63" r="39" fill={color} opacity=".35"/><circle cx="120" cy="63" r="22" fill={color}/><circle cx="120" cy="63" r="9" fill="#111827"/><circle cx="111" cy="53" r="5" fill="#fff" opacity=".8"/></svg><small>{text||"Sin hallazgos registrados"}</small></div>};
 
 export default function HistoriaClinica(){
   const [rows,setRows]=useState([]),[patients,setPatients]=useState([]),[appointments,setAppointments]=useState([]),[codes,setCodes]=useState([]);
@@ -42,7 +45,7 @@ export default function HistoriaClinica(){
   return <section className="module-page">
     <header className="page-header"><div><span className="eyebrow">Expediente optométrico</span><h1>Historia clínica</h1><p>Registro estructurado, cifrado y editable durante 24 horas.</p></div><button onClick={()=>open?close():(setOpen(true),setForm(initial))}>{open?<><X size={17}/> Cancelar</>:<><FileHeart size={17}/> Nueva historia</>}</button></header>
     {message&&<div className={`notice ${message.toLowerCase().includes("error")?"error":""}`}>{message}</div>}
-    {open&&<form className="clinical-form" onSubmit={save}>
+    {open&&<><nav className="clinical-progress" aria-label="Secciones de historia clínica">{["Datos generales","Anamnesis","Lensometría","Agudeza visual","Examen externo / Biomicroscopía","Reflejos pupilares","Oftalmoscopía","Examen motor","Diagnóstico y tratamiento","Consentimiento y firma"].map((item,index)=><a href={`#${slug(item)}`} key={item}><span>{index+1}</span>{item}</a>)}</nav><form className="clinical-form" onSubmit={save}>
       <Section icon={FileHeart} title="Datos generales">
         <div className="field-grid">
           <label>Paciente<select required disabled={Boolean(edit)} value={form.id_paciente} onChange={(e)=>setForm({...form,id_paciente:e.target.value,id_cita:""})}><option value="">Seleccione un paciente</option>{patients.map((p)=><option value={p.id_paciente} key={p.id_paciente}>{p.apellido} {p.nombre} · {p.cedula}</option>)}</select></label>
@@ -61,6 +64,7 @@ export default function HistoriaClinica(){
       <Section icon={Glasses} title="Lensometría"><ObjectFields keys={sections.lensometria} value={form.lensometria} onChange={(value)=>setObject("lensometria",value)}/></Section>
       <Section icon={Eye} title="Agudeza visual"><ObjectFields keys={sections.agudeza_visual} value={form.agudeza_visual} onChange={(value)=>setObject("agudeza_visual",value)}/></Section>
       <Section icon={ScanEye} title="Examen externo / Biomicroscopía"><ObjectFields keys={sections.examen_externo} value={form.examen_externo} onChange={(value)=>setObject("examen_externo",value)}/></Section>
+      <Section icon={Eye} title="Mapa ocular clínico"><p>Vista orientativa por colores basada en los hallazgos escritos; no reemplaza la valoración profesional.</p><div className="eye-diagrams"><ClinicalEye side="Ojo derecho (OD)" text={[form.examen_externo?.conjuntiva_esclera_od,form.examen_externo?.cornea_camara_od,form.examen_externo?.cristalino_od,form.diagnostico?.diagnostico_od].filter(Boolean).join(" · ")}/><ClinicalEye side="Ojo izquierdo (OI)" text={[form.examen_externo?.conjuntiva_esclera_oi,form.examen_externo?.cornea_camara_oi,form.examen_externo?.cristalino_oi,form.diagnostico?.diagnostico_oi].filter(Boolean).join(" · ")}/></div></Section>
       <Section icon={Activity} title="Reflejos pupilares"><ObjectFields keys={sections.reflejos_pupilares} value={form.reflejos_pupilares} onChange={(value)=>setObject("reflejos_pupilares",value)}/></Section>
       <Section icon={Eye} title="Oftalmoscopía"><ObjectFields keys={sections.oftalmoscopia} value={form.oftalmoscopia} onChange={(value)=>setObject("oftalmoscopia",value)}/></Section>
       <Section icon={Activity} title="Examen motor"><ObjectFields keys={sections.examen_motor} value={form.examen_motor} onChange={(value)=>setObject("examen_motor",value)}/></Section>
@@ -75,7 +79,7 @@ export default function HistoriaClinica(){
       </Section>
       <Section icon={CheckCircle2} title="Consentimiento y firma"><div className="field-grid cols-3"><label className="checkbox-label"><input type="checkbox" checked={form.consentimiento_informado} onChange={(e)=>setForm({...form,consentimiento_informado:e.target.checked})}/>Consentimiento informado aceptado</label><Field name="firma_paciente" value={form.firma_paciente} onChange={(value)=>setForm({...form,firma_paciente:value})} required/></div></Section>
       <div className="sticky-actions"><button type="button" className="secondary" onClick={close}>Cancelar</button><button><Save size={17}/> {edit?"Actualizar historia":"Guardar historia"}</button></div>
-    </form>}
+    </form></>}
     {!open&&<div className="table-wrap"><table><thead><tr><th>N.º</th><th>Paciente</th><th>CIE-10</th><th>Fecha</th><th>Estado legal</th><th>Acciones</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id_historia}><td>HC-{String(row.id_historia).padStart(6,"0")}</td><td>{row.paciente_apellido} {row.paciente_nombre}</td><td>{row.diagnostico_cie10||"—"}</td><td>{new Date(row.creado_en).toLocaleString()}</td><td><span className="status-pill"><span/>{row.bloqueada_legal?"Cerrada":"Editable"}</span></td><td><button className="secondary" onClick={()=>printRow(row)}><Printer size={14}/></button>{!row.bloqueada_legal&&<><button onClick={()=>editRow(row)}>Editar</button><button className="secondary" onClick={()=>block(row.id_historia)}>Cerrar</button></>}</td></tr>)}</tbody></table>{!rows.length&&<div className="empty">No hay historias clínicas registradas.</div>}</div>}
   </section>;
 }

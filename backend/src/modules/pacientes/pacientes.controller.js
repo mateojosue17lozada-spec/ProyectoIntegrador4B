@@ -3,7 +3,7 @@ const registrarAuditoria = require("../../utils/audit");
 const responderError = require("../../utils/dbError");
 
 exports.obtener = async (req,res) => {
-    try { res.json(await service.obtener()); }
+    try { res.json(await service.obtener(req.query)); }
     catch (error) { responderError(res,error,"Error al obtener pacientes"); }
 };
 exports.crear = async (req,res) => {

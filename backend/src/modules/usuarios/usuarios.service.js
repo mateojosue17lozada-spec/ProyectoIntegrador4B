@@ -3,7 +3,7 @@ const audit = require("../../utils/audit");
 
 exports.listar = async () => (await pool.query(
     `SELECT u.id_usuario,u.nombre,u.apellido,u.correo,u.usuario,u.cedula,u.telefono,
-            u.id_rol,u.estado,u.bloqueado,u.ultimo_login,r.nombre_rol
+            u.id_rol,u.estado,u.bloqueado,u.bloqueado_hasta,u.ultimo_login,r.nombre_rol
      FROM usuarios u JOIN roles r USING(id_rol) ORDER BY u.nombre,u.apellido`
 )).rows;
 
@@ -25,7 +25,8 @@ exports.cambiarEstado = async (id, data, usuario, req) => {
         await client.query("BEGIN");
         const result = await client.query(
             `UPDATE usuarios SET estado=COALESCE($1,estado),bloqueado=COALESCE($2,bloqueado),
-             intentos_fallidos=CASE WHEN $2=FALSE THEN 0 ELSE intentos_fallidos END
+             intentos_fallidos=CASE WHEN $2=FALSE THEN 0 ELSE intentos_fallidos END,
+             bloqueado_hasta=CASE WHEN $2=FALSE THEN NULL ELSE bloqueado_hasta END
              WHERE id_usuario=$3 RETURNING id_usuario,nombre,apellido,correo,usuario,estado,bloqueado,id_rol`,
             [typeof data.estado === "boolean" ? data.estado : null,
              typeof data.bloqueado === "boolean" ? data.bloqueado : null, id]
@@ -35,7 +36,7 @@ exports.cambiarEstado = async (id, data, usuario, req) => {
             await client.query("UPDATE sesiones_usuario SET revocada_en=NOW() WHERE id_usuario=$1 AND revocada_en IS NULL", [id]);
         }
         await client.query("COMMIT");
-        await audit({ idUsuario: usuario.id, accion: "USUARIO_ACCESO_ACTUALIZADO", tabla: "usuarios", registroId: Number(id), detalle: data, req });
+        await audit({ idUsuario: usuario.id, accion: data.bloqueado === false ? "USUARIO_DESBLOQUEADO" : "USUARIO_ACCESO_ACTUALIZADO", tabla: "usuarios", registroId: Number(id), detalle: { ...data, motivo: data.motivo || "Gestion administrativa" }, req });
         return result.rows[0];
     } catch (error) {
         await client.query("ROLLBACK");

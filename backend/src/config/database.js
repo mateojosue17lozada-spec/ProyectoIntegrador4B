@@ -1,11 +1,18 @@
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 
 const { Pool } = require("pg");
+const logger = require("../utils/logger");
+const { validateTestDatabaseEnvironment } = require("./testDatabaseSafety");
 
-const usarSsl = process.env.DB_SSL === "true" || /supabase|render|railway|neon|amazonaws/i.test(process.env.DATABASE_URL || "");
+const isTest = process.env.NODE_ENV === "test";
+const connectionString = isTest ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL;
+
+if (isTest) validateTestDatabaseEnvironment();
+
+const usarSsl = process.env.DB_SSL === "true" || /supabase|render|railway|neon|amazonaws/i.test(connectionString || "");
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString,
     ssl: usarSsl ? { rejectUnauthorized: false } : false,
     max: Number(process.env.DB_POOL_MAX || 10),
     idleTimeoutMillis: 30000,
@@ -13,7 +20,7 @@ const pool = new Pool({
 });
 
 pool.on("error", (error) => {
-    console.error("Error inesperado en el pool de PostgreSQL:", error.message);
+    logger.error("Error inesperado en el pool de PostgreSQL", { code: error.code });
 });
 
 module.exports = pool;

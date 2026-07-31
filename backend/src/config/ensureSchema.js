@@ -1,6 +1,12 @@
 const pool = require("./database");
 
 const ensureSchema = async () => {
+    if (process.env.NODE_ENV === "production") {
+        throw new Error("ensureSchema esta prohibido en produccion; aplique migraciones versionadas");
+    }
+    if (process.env.ALLOW_RUNTIME_DDL !== "true") {
+        throw new Error("ensureSchema desactivado; use ALLOW_RUNTIME_DDL=true solo en desarrollo temporal");
+    }
     await pool.query(`
         CREATE TABLE IF NOT EXISTS auditoria (
             id_auditoria BIGSERIAL PRIMARY KEY,

@@ -4,7 +4,7 @@ const responderError = require("../../utils/dbError");
 
 exports.obtener = async (req, res) => {
     try {
-        const citas = await service.obtener();
+        const citas = await service.obtener(req.query);
         res.json(citas);
     } catch (error) {
         responderError(res,error,"Error al obtener citas");
