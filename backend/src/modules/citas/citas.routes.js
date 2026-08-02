@@ -14,6 +14,9 @@ const rol = require("../../middleware/rol.middleware");
 
 
 
+// Obtener profesionales
+router.get("/profesionales", auth, rol(["Administrador", "Optometra", "Cajero", "Vendedor"]), responder(() => service.profesionales()));
+
 // Obtener citas
 router.get(
 "/",

@@ -3,6 +3,10 @@ const audit = require("../../utils/audit");
 
 const estados = ["Pendiente", "Confirmada", "Pagada", "En atención", "Atendida", "Cancelada", "No asistio"];
 
+exports.profesionales = async () => (await pool.query(
+    "SELECT id_usuario, nombre, apellido FROM usuarios JOIN roles USING(id_rol) WHERE nombre_rol IN ('Optometra', 'Administrador') AND estado=TRUE ORDER BY nombre"
+)).rows;
+
 exports.obtener = async (filters = {}) => {
     const values = [], where = [];
     if (filters.desde) { values.push(filters.desde); where.push(`c.fecha_cita >= $${values.length}::date`); }
@@ -30,9 +34,9 @@ exports.crear = async (data) => {
     if (Number.isNaN(fecha.getTime())) throw Object.assign(new Error("Fecha u hora inválida"), { status: 400 });
 
     const conflicto = await pool.query(
-        `SELECT 1 FROM citas WHERE fecha_cita=$1 AND hora_cita=$2
+        `SELECT 1 FROM citas WHERE id_usuario=$1 AND fecha_cita=$2 AND hora_cita=$3
          AND estado NOT IN ('Cancelada','No asistio') LIMIT 1`,
-        [data.fecha_cita, data.hora_cita]
+        [data.id_usuario, data.fecha_cita, data.hora_cita]
     );
     if (conflicto.rowCount) throw Object.assign(new Error("Ya existe una cita en ese horario"), { status: 409 });
 
@@ -47,6 +51,19 @@ exports.crear = async (data) => {
 
 exports.actualizarEstado = async (id, data, usuario, req) => {
     if (!estados.includes(data.estado)) throw Object.assign(new Error("Estado de cita inválido"), { status: 400 });
+    
+    const citaActualResult = await pool.query("SELECT estado FROM citas WHERE id_cita=$1", [id]);
+    if (!citaActualResult.rows[0]) throw Object.assign(new Error("Cita no encontrada"), { status: 404 });
+    const estadoActual = citaActualResult.rows[0].estado;
+
+    if (["Cancelada", "Atendida"].includes(estadoActual)) {
+        throw Object.assign(new Error(`No se puede cambiar el estado de una cita que ya está ${estadoActual}`), { status: 409 });
+    }
+
+    if (data.estado === "Cancelada" && !String(data.motivo_cancelacion || "").trim()) {
+        throw Object.assign(new Error("Debe proporcionar un motivo de cancelación"), { status: 400 });
+    }
+
     if (["Pagada", "En atención", "Atendida"].includes(data.estado)) {
         const pago = await pool.query("SELECT COALESCE(SUM(monto),0) total FROM pagos_previos WHERE id_cita=$1", [id]);
         if (Number(pago.rows[0].total) <= 0) {
@@ -57,8 +74,8 @@ exports.actualizarEstado = async (id, data, usuario, req) => {
         throw Object.assign(new Error("Solo el optómetra puede iniciar la atención"), { status: 403 });
     }
     const result = await pool.query(
-        `UPDATE citas SET estado=$1,observacion=COALESCE($2,observacion),actualizado_en=NOW()
-         WHERE id_cita=$3 RETURNING *`, [data.estado,data.observacion || null,id]
+        `UPDATE citas SET estado=$1,observacion=COALESCE($2,observacion),motivo_cancelacion=$3,actualizado_en=NOW()
+         WHERE id_cita=$4 RETURNING *`, [data.estado, data.observacion || null, data.motivo_cancelacion || null, id]
     );
     if (!result.rows[0]) throw Object.assign(new Error("Cita no encontrada"), { status: 404 });
     await audit({ idUsuario: usuario.id, accion: "CITA_ESTADO_ACTUALIZADO", tabla: "citas", registroId: Number(id), detalle: { estado: data.estado }, req });
@@ -92,4 +109,4 @@ exports.registrarPagoPrevio = async (id, data, usuario, req) => {
     } finally { client.release(); }
 };
 
-exports.cancelar = async (id, usuario, req) => exports.actualizarEstado(id, { estado: "Cancelada" }, usuario, req);
+exports.cancelar = async (id, data, usuario, req) => exports.actualizarEstado(id, { estado: "Cancelada", motivo_cancelacion: data?.motivo_cancelacion }, usuario, req);

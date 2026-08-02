@@ -10,13 +10,29 @@ const logAuthReject = (req, motivo, detalle = {}) => {
     logger.warn("Solicitud autenticada rechazada", { eventCode: "AUTH_REJECTED", reason: motivo, method: req.method, path: req.originalUrl, ...detalle });
 };
 
+const parseCookies = (req) => {
+    const list = {};
+    const rc = req.headers.cookie;
+    rc && rc.split(';').forEach((cookie) => {
+        const parts = cookie.split('=');
+        list[parts.shift().trim()] = decodeURI(parts.join('='));
+    });
+    return list;
+};
+
 module.exports = async (req, res, next) => {
+    const cookies = parseCookies(req);
+    const tokenCookie = cookies.token;
+
     const authorization = req.headers.authorization || "";
-    const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+    const tokenHeader = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+    
+    const token = tokenCookie || tokenHeader;
 
     if (!token) {
-        logAuthReject(req, "Authorization Bearer ausente o vacio", {
-            authorizationRecibido: Boolean(authorization)
+        logAuthReject(req, "Token ausente (ni en cookie ni en Authorization)", {
+            authorizationRecibido: Boolean(authorization),
+            cookieRecibida: Boolean(tokenCookie)
         });
         return res.status(401).json({ mensaje: "Token requerido" });
     }

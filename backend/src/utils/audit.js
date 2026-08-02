@@ -1,8 +1,8 @@
 const pool = require("../config/database");
 
-const registrarAuditoria = async ({ idUsuario, accion, tabla, registroId, detalle, req }) => {
+const registrarAuditoria = async ({ idUsuario, accion, tabla, registroId, detalle, req, client = pool }) => {
     try {
-        await pool.query(
+        await client.query(
             `
             INSERT INTO auditoria
             (id_usuario, accion, tabla_afectada, id_registro, detalle, ip, user_agent, fecha)
@@ -20,6 +20,8 @@ const registrarAuditoria = async ({ idUsuario, accion, tabla, registroId, detall
         );
     } catch (error) {
         console.error("Error registrando auditoria:", error.message);
+        // Si estamos en una transaccion, re-lanzamos el error para asegurar que se revierta
+        if (client !== pool) throw error;
     }
 };
 

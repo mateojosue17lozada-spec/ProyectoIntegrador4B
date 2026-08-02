@@ -127,6 +127,7 @@ export default function Inventario() {
         </div>
       </div>
       <form className="form-grid" onSubmit={guardarAjuste}>
+        <label>Escanear código<input placeholder="🔍 Código de barras o SKU..." onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();const p=results.find(x=>x.codigo_barra===e.target.value||x.sku===e.target.value);if(p){setAdjust({...adjust,id_producto:p.id_producto});e.target.value=""}else{alert("Producto no encontrado")}}}}/></label>
         <label>
           Producto
           <select

@@ -11,9 +11,23 @@ exports.login = async (req, res) => {
             req
         });
 
-        res.json(resultado);
+        // Configurar cookie HttpOnly
+        res.cookie("token", resultado.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 8 * 60 * 60 * 1000 // 8 horas
+        });
+
+        const { token, ...respuestaJSON } = resultado;
+        res.json(respuestaJSON);
     } catch (error) {
         logger.warn("Inicio de sesion rechazado", { eventCode: "LOGIN_REJECTED", reason: error.internalCode || "INVALID_CREDENTIALS" });
+        
+        if (error.internalCode === "LOGIN_BLOCKED") {
+            return res.status(403).json({ mensaje: "Tu cuenta ha sido bloqueada temporalmente por múltiples intentos fallidos. Por favor, intenta más tarde o contacta al administrador." });
+        }
+
         res.status(401).json({ mensaje: "Usuario o contraseña incorrectos." });
     }
 };
@@ -69,6 +83,7 @@ exports.logout = async (req, res) => {
             idUsuario: req.usuario.id,
             req
         });
+        res.clearCookie("token");
         res.json(resultado);
     } catch (error) {
         res.status(error.status || 400).json({ mensaje: error.message });

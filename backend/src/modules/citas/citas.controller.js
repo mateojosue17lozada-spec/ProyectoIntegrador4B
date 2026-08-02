@@ -13,7 +13,8 @@ exports.obtener = async (req, res) => {
 
 exports.crear = async (req, res) => {
     try {
-        const cita = await service.crear({...req.body,id_usuario:req.usuario.id});
+        const id_usuario = req.body.id_usuario || req.usuario.id;
+        const cita = await service.crear({...req.body, id_usuario});
 
         await registrarAuditoria({
             idUsuario: req.usuario?.id,

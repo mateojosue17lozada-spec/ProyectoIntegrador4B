@@ -11,5 +11,6 @@ router.get("/cie10/catalogo", rol(["Administrador", "Optometra"]), responder((re
 router.get("/:id", rol(["Administrador", "Optometra", "Cajero"]), responder((req) => service.obtener(req.params.id)));
 router.post("/", rol(["Administrador", "Optometra"]), responder((req) => service.crear(req.body, req.usuario, req), 201));
 router.put("/:id", rol(["Administrador", "Optometra"]), responder((req) => service.actualizar(req.params.id, req.body, req.usuario, req)));
-router.post("/:id/bloquear", rol(["Administrador", "Optometra"]), responder((req) => service.bloquear(req.params.id, req.usuario, req)));
+router.post("/:id/finalizar", rol(["Administrador", "Optometra"]), responder((req) => service.finalizar(req.params.id, req.usuario, req)));
+router.post("/:id/adendas", rol(["Administrador", "Optometra"]), responder((req) => service.agregarAdenda(req.params.id, req.body, req.usuario, req), 201));
 module.exports = router;

@@ -16,52 +16,38 @@ const decodificarPayloadJwt = (token) => {
 
 const eliminarSesionLocal = (motivo) => {
     void motivo;
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
 };
 
 const leerSesionGuardada = () => {
-    const token = localStorage.getItem("token");
-
     try {
         const user = JSON.parse(localStorage.getItem("user")) || null;
 
-
-        if (!token || !user) {
-            if (token || user) eliminarSesionLocal("storage incompleto al iniciar");
-            return { token: null, user: null };
+        if (!user) {
+            return { user: null };
         }
 
-        const payload = decodificarPayloadJwt(token);
-        if (!payload?.exp) {
-            eliminarSesionLocal("token guardado invalido");
-            return { token: null, user: null };
-        }
-
-        if (payload.exp * 1000 <= Date.now()) {
-            eliminarSesionLocal("token expirado al iniciar");
-            return { token: null, user: null };
-        }
-
-        return { token, user };
+        // Ya no validamos el exp del token aqui porque el backend maneja la cookie.
+        // La validez final la dictara cualquier request a la API que devuelva 401.
+        return { user };
     } catch {
         eliminarSesionLocal("usuario guardado invalido");
-        return { token: null, user: null };
+        return { user: null };
     }
 };
 
 export const AuthProvider = ({ children }) => {
     const [session, setSession] = useState(leerSesionGuardada);
-    const { token, user } = session;
+    const { user } = session;
 
     useEffect(() => {
         const cerrarSesionExpirada = (event) => {
             void event;
-            setSession({ token: null, user: null });
+            setSession({ user: null });
         };
 
         const sincronizarStorage = (event) => {
-            if (!["token", "user"].includes(event.key)) return;
+            if (event.key !== "user") return;
             setSession(leerSesionGuardada());
         };
 
@@ -86,15 +72,12 @@ export const AuthProvider = ({ children }) => {
                 }
             });
 
-            if (!data.token || !data.usuario) {
+            if (!data.usuario) {
                 throw new Error("Respuesta de login incompleta");
             }
 
-            const payload = decodificarPayloadJwt(data.token);
-            localStorage.setItem("token", data.token);
-            void payload;
             localStorage.setItem("user", JSON.stringify(data.usuario));
-            setSession({ token: data.token, user: data.usuario });
+            setSession({ user: data.usuario });
 
             return { ok: true };
         } catch (error) {
@@ -112,11 +95,11 @@ export const AuthProvider = ({ children }) => {
             // La sesion local siempre debe cerrarse, incluso sin conexion.
         }
         eliminarSesionLocal("logout solicitado por usuario");
-        setSession({ token: null, user: null });
+        setSession({ user: null });
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, isAuthenticated: Boolean(user && token), login, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: Boolean(user), login, logout }}>
             {children}
         </AuthContext.Provider>
     );

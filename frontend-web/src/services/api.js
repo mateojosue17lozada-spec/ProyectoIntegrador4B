@@ -1,15 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 const limpiarSesionPor401 = () => {
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
 };
 
-const sesionSigueVigente = async (token) => {
-    if (!token) return false;
+const sesionSigueVigente = async () => {
     try {
         return (await fetch(`${API_URL}/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` }
+            credentials: "include"
         })).ok;
     } catch {
         return false;
@@ -18,22 +16,20 @@ const sesionSigueVigente = async (token) => {
 
 export const apiFetch = async (path, options = {}) => {
     const requiereAuth = options.auth !== false;
-    const token = requiereAuth ? localStorage.getItem("token") : null;
     const headers = {
         ...(options.body ? { "Content-Type": "application/json" } : {}),
-        ...(!requiereAuth || !token ? {} : { Authorization: `Bearer ${token}` }),
         ...options.headers
     };
     const response = await fetch(`${API_URL}${path}`, {
         ...options,
         headers,
+        credentials: "include",
         body: options.body ? JSON.stringify(options.body) : undefined
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
         if (response.status === 401 && requiereAuth) {
-            const tokenActual = localStorage.getItem("token");
-            const sigueVigente = tokenActual === token && await sesionSigueVigente(token);
+            const sigueVigente = await sesionSigueVigente();
             if (!sigueVigente) {
                 limpiarSesionPor401();
                 window.dispatchEvent(new CustomEvent("auth:session-expired", { detail: { path } }));
