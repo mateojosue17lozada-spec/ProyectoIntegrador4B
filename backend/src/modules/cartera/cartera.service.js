@@ -9,9 +9,19 @@ const tramo = `CASE
 exports.obtener = async () => {
     await pool.query("UPDATE cuentas_por_cobrar SET estado='Vencida',credito_bloqueado=TRUE WHERE saldo>0 AND fecha_vencimiento<CURRENT_DATE");
     return (await pool.query(
-        `SELECT c.*,p.nombre paciente_nombre,p.apellido paciente_apellido,${tramo} antiguedad
-         FROM cuentas_por_cobrar c JOIN pacientes p USING(id_paciente)
-         WHERE c.saldo>0 ORDER BY c.fecha_vencimiento`
+        `SELECT 
+            c.*,
+            f.numero_factura,
+            f.creado_en AS fecha_factura,
+            f.total AS total_factura,
+            p.nombre paciente_nombre,
+            p.apellido paciente_apellido,
+            ${tramo} antiguedad
+         FROM cuentas_por_cobrar c
+         JOIN facturas f ON f.id_factura = c.id_factura
+         JOIN pacientes p ON p.id_paciente = c.id_paciente
+         WHERE c.saldo > 0 
+         ORDER BY c.fecha_vencimiento`
     )).rows;
 };
 

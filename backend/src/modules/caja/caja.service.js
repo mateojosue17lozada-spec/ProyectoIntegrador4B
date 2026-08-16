@@ -1,5 +1,113 @@
-const pool=require("../../config/database");const audit=require("../../utils/audit");
-exports.estado=async(id)=>{const r=await pool.query("SELECT * FROM caja_turnos WHERE id_cajero=$1 AND estado='Abierta' ORDER BY abierto_en DESC LIMIT 1",[id]);return r.rows[0]||null};
-exports.abrir=async(data,u,req)=>{if(await exports.estado(u.id))throw new Error("Ya existe una caja abierta para este cajero");const cerrada=await pool.query("SELECT 1 FROM caja_turnos WHERE id_cajero=$1 AND fecha=CURRENT_DATE AND estado='Cerrada' LIMIT 1",[u.id]);if(cerrada.rowCount)throw Object.assign(new Error("La caja diaria ya fue cerrada. No puede reabrirse hasta el siguiente día"),{status:409});const monto=Number(data.monto_apertura||0);if(!Number.isFinite(monto)||monto<0)throw Object.assign(new Error("Monto de apertura inválido"),{status:400});const r=await pool.query("INSERT INTO caja_turnos(id_cajero,monto_apertura) VALUES($1,$2) RETURNING *",[u.id,monto]);await audit({idUsuario:u.id,accion:"CAJA_ABIERTA",tabla:"caja_turnos",registroId:r.rows[0].id_caja_turno,req});return r.rows[0]};
-exports.cerrar=async(data,u,req)=>{const caja=await exports.estado(u.id);if(!caja)throw new Error("No existe una caja abierta");const ventas=await pool.query(`SELECT COALESCE(SUM(fp.monto),0) total FROM factura_pagos fp JOIN facturas f USING(id_factura) WHERE f.id_caja_turno=$1 AND fp.forma_pago='Efectivo' AND f.estado='Emitida'`,[caja.id_caja_turno]);const venta=Number(ventas.rows[0].total),esperado=Number(caja.monto_apertura)+venta,contado=Number(data.monto_cierre);if(!Number.isFinite(contado)||contado<0)throw Object.assign(new Error("El efectivo declarado no es valido"),{status:400});const diferencia=contado-esperado;const r=await pool.query("UPDATE caja_turnos SET monto_cierre=$1,ventas_efectivo=$2,efectivo_esperado=$3,diferencia=$4,observaciones=$5,estado='Cerrada',cerrado_en=NOW() WHERE id_caja_turno=$6 RETURNING *",[contado,venta,esperado,diferencia,data.observaciones||null,caja.id_caja_turno]);await audit({idUsuario:u.id,accion:"CAJA_CERRADA",tabla:"caja_turnos",registroId:caja.id_caja_turno,detalle:{esperado,contado,diferencia},req});return r.rows[0]};
-exports.historial=async(f,u)=>{const values=[],where=[];if(u.rol!=="Administrador"){values.push(u.id);where.push(`c.id_cajero=$${values.length}`)}else if(f.cajero){values.push(Number(f.cajero));where.push(`c.id_cajero=$${values.length}`)}if(f.desde){values.push(f.desde);where.push(`c.abierto_en::date >= $${values.length}::date`)}if(f.hasta){values.push(f.hasta);where.push(`c.abierto_en::date <= $${values.length}::date`)}return(await pool.query(`SELECT c.*,concat_ws(' ',u.nombre,u.apellido) AS cajero FROM caja_turnos c JOIN usuarios u ON u.id_usuario=c.id_cajero ${where.length?`WHERE ${where.join(" AND ")}`:""} ORDER BY abierto_en DESC`,values)).rows};
+const pool = require("../../config/database");
+const audit = require("../../utils/audit");
+exports.estado = async (id) => {
+  const r = await pool.query(
+    "SELECT * FROM caja_turnos WHERE id_cajero=$1 AND estado='Abierta' ORDER BY abierto_en DESC LIMIT 1",
+    [id],
+  );
+  return r.rows[0] || null;
+};
+exports.abrir = async (data, u, req) => {
+  if (await exports.estado(u.id))
+    throw new Error("Ya existe una caja abierta para este cajero");
+  const cerrada = await pool.query(
+    "SELECT 1 FROM caja_turnos WHERE id_cajero=$1 AND fecha=CURRENT_DATE AND estado='Cerrada' LIMIT 1",
+    [u.id],
+  );
+  if (cerrada.rowCount)
+    throw Object.assign(
+      new Error(
+        "La caja diaria ya fue cerrada. No puede reabrirse hasta el siguiente día",
+      ),
+      { status: 409 },
+    );
+  const monto = Number(data.monto_apertura || 0);
+  if (!Number.isFinite(monto) || monto < 0)
+    throw Object.assign(new Error("Monto de apertura inválido"), {
+      status: 400,
+    });
+  const r = await pool.query(
+    "INSERT INTO caja_turnos(id_cajero,monto_apertura) VALUES($1,$2) RETURNING *",
+    [u.id, monto],
+  );
+  await audit({
+    idUsuario: u.id,
+    accion: "CAJA_ABIERTA",
+    tabla: "caja_turnos",
+    registroId: r.rows[0].id_caja_turno,
+    req,
+  });
+  return r.rows[0];
+};
+exports.cerrar = async (data, u, req) => {
+  const caja = await exports.estado(u.id);
+  if (!caja) throw new Error("No existe una caja abierta");
+  const ventas = await pool.query(
+    `SELECT COALESCE(SUM(fp.monto),0) total FROM factura_pagos fp JOIN facturas f USING(id_factura) WHERE f.id_caja_turno=$1 AND fp.forma_pago='Efectivo' AND f.estado='Emitida'`,
+    [caja.id_caja_turno],
+  );
+  
+  const abonos = await pool.query(
+    `SELECT COALESCE(SUM(monto), 0) total FROM abonos_cxc WHERE forma_pago='Efectivo' AND creado_en::date = CURRENT_DATE`
+  );
+
+  const devoluciones = await pool.query(
+    `SELECT COALESCE(SUM(monto), 0) total FROM devoluciones WHERE forma_pago='Efectivo' AND creada_en::date = CURRENT_DATE`
+  );
+
+  const venta = Number(ventas.rows[0].total),
+    abono = Number(abonos.rows[0].total),
+    devolucion = Number(devoluciones.rows[0].total),
+    esperado = Number(caja.monto_apertura) + venta + abono - devolucion,
+    contado = Number(data.monto_cierre);
+  if (!Number.isFinite(contado) || contado < 0)
+    throw Object.assign(new Error("El efectivo declarado no es valido"), {
+      status: 400,
+    });
+  const diferencia = contado - esperado;
+  const r = await pool.query(
+    "UPDATE caja_turnos SET monto_cierre=$1,ventas_efectivo=$2,efectivo_esperado=$3,diferencia=$4,observaciones=$5,estado='Cerrada',cerrado_en=NOW() WHERE id_caja_turno=$6 RETURNING *",
+    [
+      contado,
+      venta,
+      esperado,
+      diferencia,
+      data.observaciones || null,
+      caja.id_caja_turno,
+    ],
+  );
+  await audit({
+    idUsuario: u.id,
+    accion: "CAJA_CERRADA",
+    tabla: "caja_turnos",
+    registroId: caja.id_caja_turno,
+    detalle: { esperado, contado, diferencia },
+    req,
+  });
+  return r.rows[0];
+};
+exports.historial = async (f, u) => {
+  const values = [],
+    where = [];
+  if (u.rol !== "Administrador") {
+    values.push(u.id);
+    where.push(`c.id_cajero=$${values.length}`);
+  } else if (f.cajero) {
+    values.push(Number(f.cajero));
+    where.push(`c.id_cajero=$${values.length}`);
+  }
+  if (f.desde) {
+    values.push(f.desde);
+    where.push(`c.abierto_en::date >= $${values.length}::date`);
+  }
+  if (f.hasta) {
+    values.push(f.hasta);
+    where.push(`c.abierto_en::date <= $${values.length}::date`);
+  }
+  return (
+    await pool.query(
+      `SELECT c.*,concat_ws(' ',u.nombre,u.apellido) AS cajero FROM caja_turnos c JOIN usuarios u ON u.id_usuario=c.id_cajero ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY abierto_en DESC`,
+      values,
+    )
+  ).rows;
+};

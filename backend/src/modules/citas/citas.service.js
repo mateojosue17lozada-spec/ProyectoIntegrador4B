@@ -33,6 +33,17 @@ exports.crear = async (data) => {
     const fecha = new Date(`${data.fecha_cita}T${data.hora_cita}`);
     if (Number.isNaN(fecha.getTime())) throw Object.assign(new Error("Fecha u hora inválida"), { status: 400 });
 
+    const hoyStr = new Date().toISOString().slice(0, 10);
+    if (data.fecha_cita < hoyStr) {
+        throw Object.assign(new Error("No se pueden agendar citas en fechas pasadas"), { status: 400 });
+    }
+    if (data.fecha_cita === hoyStr) {
+        const ahoraHora = new Date().toTimeString().slice(0, 5);
+        if (data.hora_cita < ahoraHora) {
+            throw Object.assign(new Error("No se pueden agendar citas en horas pasadas del día de hoy"), { status: 400 });
+        }
+    }
+
     const conflicto = await pool.query(
         `SELECT 1 FROM citas WHERE id_usuario=$1 AND fecha_cita=$2 AND hora_cita=$3
          AND estado NOT IN ('Cancelada','No asistio') LIMIT 1`,

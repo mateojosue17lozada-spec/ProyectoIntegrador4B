@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import { DashboardHome, DashboardProfile } from "./pages/Dashboard";
 import { Login } from "./pages/Login";
 import RecuperarPassword from "./pages/auth/RecuperarPassword";
@@ -17,16 +18,22 @@ import Caja from "./pages/caja/Caja";
 import Cartera from "./pages/cartera/Cartera";
 import Usuarios from "./pages/usuarios/Usuarios";
 import RolesPermisos from "./pages/roles/RolesPermisos";
+import Catalogo from "./pages/catalogo/Catalogo";
+import ProductoDetalle from "./pages/catalogo/ProductoDetalle";
+import Carrito from "./pages/catalogo/Carrito";
 
 const permit = (roles, element) => <ProtectedRoute roles={roles}>{element}</ProtectedRoute>;
 
 export default function App() {
-    return <AuthProvider><BrowserRouter><Routes>
+    return <AuthProvider><CartProvider><BrowserRouter><Routes>
         <Route path="/login" element={<Login/>}/>
         <Route path="/recuperar" element={<RecuperarPassword/>}/>
         <Route path="/dashboard" element={<ProtectedRoute><Layout/></ProtectedRoute>}>
             <Route index element={<DashboardHome/>}/>
             <Route path="perfil" element={<DashboardProfile/>}/>
+            <Route path="catalogo" element={permit(["Paciente"], <Catalogo />)} />
+            <Route path="producto/:id" element={permit(["Paciente"], <ProductoDetalle />)} />
+            <Route path="carrito" element={permit(["Paciente"], <Carrito />)} />
             <Route path="pacientes" element={permit(["Administrador","Optometra","Cajero","Vendedor"],<Pacientes/>)}/>
             <Route path="citas" element={permit(["Administrador","Optometra","Cajero","Vendedor"],<Citas/>)}/>
             <Route path="examenes" element={permit(["Administrador","Optometra"],<Examenes/>)}/>
@@ -41,5 +48,5 @@ export default function App() {
             <Route path="roles-permisos" element={permit(["Administrador"],<RolesPermisos/>)}/>
         </Route>
         <Route path="*" element={<Navigate to="/login" replace/>}/>
-    </Routes></BrowserRouter></AuthProvider>;
+    </Routes></BrowserRouter></CartProvider></AuthProvider>;
 }
