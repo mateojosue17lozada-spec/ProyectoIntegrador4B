@@ -34,7 +34,10 @@ exports.pagarCxc = async (id, data, usuario, req) => {
         if (!cuenta.rows[0] || monto <= 0 || monto > Number(cuenta.rows[0].saldo)) {
             throw Object.assign(new Error("Cuenta o monto inválido"), { status: 400 });
         }
+        // Registrar abono en tabla de auditoria
         await client.query("INSERT INTO abonos_cxc(id_cxc,monto,forma_pago) VALUES($1,$2,$3)", [id,monto,data.forma_pago]);
+        // SINCRONIZAR: También registrar en factura_pagos para que facturación y caja lo vean
+        await client.query("INSERT INTO factura_pagos(id_factura,forma_pago,monto) VALUES($1,$2,$3)", [cuenta.rows[0].id_factura,data.forma_pago,monto]);
         const saldo = Number(cuenta.rows[0].saldo)-monto;
         await client.query("UPDATE cuentas_por_cobrar SET saldo=$1,estado=$2 WHERE id_cxc=$3", [saldo,saldo===0 ? "Pagada" : "Pendiente",id]);
         await client.query(
