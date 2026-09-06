@@ -104,3 +104,6 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
+
+export { useAuth } from "../hooks/useAuth";
+

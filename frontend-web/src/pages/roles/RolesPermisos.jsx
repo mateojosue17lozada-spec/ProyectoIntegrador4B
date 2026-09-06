@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, Save } from "lucide-react";
 import { apiFetch } from "../../services/api";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function RolesPermisos() {
     const { usuario } = useAuth();
