@@ -378,3 +378,58 @@ details { margin-bottom:22px; }
   .prescription-page .screen-content { display:none!important; }.prescription-page .print-document { display:block; padding:24px; }.print-document header{display:flex;justify-content:space-between;border-bottom:2px solid #12384b;margin-bottom:24px;padding-bottom:15px}.print-document header h1{margin:0}.print-document table{margin:22px 0;border:1px solid #ccd8de}.signature-line{width:260px;margin:70px 0 0 auto;border-top:1px solid #333;padding-top:8px;text-align:center}
   .module-page>.print-document { display:block; padding:24px; }.module-page:has(>.print-document)>*:not(.print-document){display:none!important}
 }
+
+/* ===== Probador virtual: estudio y modal (catalogo) ===== */
+.tryon-studio { display:grid;grid-template-columns:minmax(280px,1fr) minmax(260px,340px);gap:20px; }
+.tryon-canvas--studio { aspect-ratio:3/4;max-height:60vh;background:#0f172a; }
+.tryon-canvas--studio>video { width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1); }
+.tryon-canvas--studio>img:first-child { width:100%;height:100%;object-fit:contain; }
+.tryon-vacio { position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;padding:24px;text-align:center;color:#cbd5e1; }
+.tryon-cargando { position:absolute;inset:auto 0 0 0;padding:8px;background:#0f172acc;color:#fff;text-align:center;font-size:.85rem; }
+.tryon-fuentes { display:flex;flex-wrap:wrap;gap:8px; }
+.tryon-fuentes button,.tryon-acciones button { display:inline-flex;align-items:center;gap:6px;justify-content:center; }
+.tryon-acciones { display:flex;flex-wrap:wrap;gap:8px; }
+.tryon-controls button.secundario { background:#fff;color:#0f3460;border:1px solid #0f346055; }
+.tryon-consentimiento { display:flex;align-items:flex-start;gap:8px;font-size:.82rem;line-height:1.4;color:#475569; }
+.tryon-consentimiento input { margin-top:3px;width:auto; }
+.tryon-peso { color:#64748b;font-size:.75rem; }
+
+.tryon-backdrop { position:fixed;inset:0;z-index:1100;background:#000000d9;display:grid;place-items:center;padding:16px;overflow-y:auto; }
+.tryon-dialog { width:min(960px,100%);background:#fff;border-radius:16px;padding:20px;box-shadow:0 20px 60px #0008; }
+.tryon-dialog__header { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px; }
+.tryon-dialog__header h2 { margin:0;font-size:1.15rem; }
+
+@media (max-width:800px) {
+  .tryon-studio { grid-template-columns:1fr; }
+  .tryon-canvas--studio { aspect-ratio:4/5;max-height:46vh; }
+}
+
+/* ===== Probador virtual en tiempo real (MediaPipe Face Mesh) ===== */
+.tryon-canvas--live { aspect-ratio:4/3;max-height:62vh;background:#0f172a;display:flex;align-items:center;justify-content:center; }
+.tryon-lienzo { width:100%;height:100%;object-fit:contain;display:block;touch-action:none; }
+.tryon-lienzo:active { cursor:grabbing; }
+.tryon-estado { position:absolute;left:12px;bottom:12px;padding:6px 12px;border-radius:999px;font-size:.8rem;font-weight:600;backdrop-filter:blur(4px); }
+.tryon-estado.ok { background:#16a34acc;color:#fff; }
+.tryon-estado.buscando { background:#0f172acc;color:#e2e8f0; }
+.tryon-cargando { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:8px;padding:10px 16px;background:#0f172ae6;color:#fff;border-radius:10px;font-size:.85rem; }
+.tryon-girando { animation:tryon-giro 1s linear infinite; }
+@keyframes tryon-giro { to { transform:rotate(360deg); } }
+.tryon-control { display:grid;gap:5px;font-size:.85rem;color:#334155; }
+.tryon-control span { font-weight:600; }
+.tryon-control input[type="range"] { width:100%; }
+.tryon-control select { padding:.5rem;border:1px solid var(--line,#e2e8f0);border-radius:8px;background:#fff; }
+.tryon-seguir,.tryon-consentimiento { display:flex;align-items:flex-start;gap:8px;font-size:.82rem;line-height:1.4;color:#475569; }
+.tryon-seguir input,.tryon-consentimiento input { margin-top:3px;width:auto; }
+.tryon-subir { display:inline-flex;align-items:center;gap:6px;justify-content:center;padding:.55rem 1rem;border-radius:8px;cursor:pointer;background:#fff;color:#0f3460;border:1px solid #0f346055;font-weight:600;font-size:.9rem; }
+@media (max-width:800px) { .tryon-canvas--live { aspect-ratio:3/4;max-height:48vh; } }
+
+/* ===== Carga de múltiples imágenes (galería de producto, admin) ===== */
+.multifile-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:8px; }
+.multifile-item { position:relative;border:1px solid var(--line,#e2e8f0);border-radius:8px;overflow:hidden;background:#f8fafc;aspect-ratio:1/1; }
+.multifile-item>img { width:100%;height:100%;object-fit:cover;display:block; }
+.multifile-orden { position:absolute;top:4px;left:4px;background:#1A3A6Bcc;color:#fff;font-size:11px;font-weight:700;width:18px;height:18px;border-radius:50%;display:grid;place-items:center; }
+.multifile-acciones { position:absolute;inset:auto 0 0 0;display:flex;justify-content:center;gap:2px;background:#0f172acc;padding:2px; }
+.multifile-acciones button { width:22px;height:22px;padding:0;border:none;background:#ffffff22;color:#fff;border-radius:4px;cursor:pointer;font-size:12px;line-height:1; }
+.multifile-acciones button:disabled { opacity:.35;cursor:default; }
+.multifile-acciones button.quitar { background:#dc262699; }
+.multifile-nota { display:block;margin-top:6px;color:#64748b;font-size:12px; }

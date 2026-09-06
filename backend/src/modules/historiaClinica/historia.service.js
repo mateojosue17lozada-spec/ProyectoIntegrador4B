@@ -125,7 +125,19 @@ exports.actualizar = async (id, data, usuario, req) => {
     const client = await pool.connect();
     try {
         await client.query("BEGIN");
-        
+
+        const previa = await client.query("SELECT estado FROM historias_clinicas WHERE id_historia=$1 FOR UPDATE", [id]);
+        if (!previa.rows[0]) throw Object.assign(new Error("Historia clínica no encontrada"), { status: 404 });
+
+        // Editar una historia FINALIZADA exige registrar el motivo (Diana). En
+        // borrador aun se esta redactando, no hace falta.
+        const observacion = String(data.observacion || "").trim();
+        if (previa.rows[0].estado === "Finalizada" && !observacion) {
+            throw Object.assign(new Error("Debe registrar el motivo de la edición"), { status: 400 });
+        }
+
+        // Si la historia esta bloqueada por las 24 h, este UPDATE dispara el
+        // trigger (P0001), que utils/http.js traduce a un 409 con mensaje claro.
         const result = await client.query(
             `UPDATE historias_clinicas SET datos_encriptados=$1,actualizado_en=NOW(),
              consultorio=$2,consentimiento_informado=$3,firma_paciente=$4,nombre_examinador=$5,
@@ -135,7 +147,7 @@ exports.actualizar = async (id, data, usuario, req) => {
              data.jornada || null,id]
         );
         if (!result.rows[0]) throw Object.assign(new Error("Historia clínica no encontrada o no editable"), { status: 404 });
-        
+
         if (data.diagnosticos && Array.isArray(data.diagnosticos)) {
             await client.query("DELETE FROM historia_diagnosticos WHERE id_historia=$1", [id]);
             for (const diag of data.diagnosticos) {
@@ -147,13 +159,73 @@ exports.actualizar = async (id, data, usuario, req) => {
             }
         }
 
+        // Historial de cambios: los datos clinicos van cifrados, asi que se
+        // registra el motivo y el campo, no el texto en claro.
+        await client.query(
+            `INSERT INTO historia_ediciones(id_historia, id_usuario, campo_modificado, observacion)
+             VALUES ($1, $2, 'datos_clinicos', $3)`,
+            [id, usuario.id, observacion || "Actualización de historia"]
+        );
+
         await client.query("COMMIT");
-        await audit({ idUsuario: usuario.id, accion: "HISTORIA_ACTUALIZADA", tabla: "historias_clinicas", registroId: Number(id), req, client: pool });
+        await audit({ idUsuario: usuario.id, accion: "HISTORIA_ACTUALIZADA", tabla: "historias_clinicas", registroId: Number(id), detalle: { observacion: observacion || null }, req, client: pool });
         return exports.obtener(id);
     } catch (error) {
         await client.query("ROLLBACK");
         throw error;
     } finally { client.release(); }
+};
+
+/**
+ * Desbloqueo autorizado por un administrador (Diana): reabre por 2 h una
+ * historia finalizada y bloqueada por las 24 h, para que pueda corregirse. Exige
+ * motivo, queda auditado y registrado en el historial de ediciones. Usa el
+ * bypass del trigger solo dentro de esta transaccion.
+ */
+exports.desbloquear = async (id, data, usuario, req) => {
+    const observacion = String(data.observacion || "").trim();
+    if (!observacion) throw Object.assign(new Error("Debe indicar el motivo de la autorización"), { status: 400 });
+
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+        await client.query("SET LOCAL app.bypass_bloqueo_historia = 'on'");
+        const r = await client.query(
+            `UPDATE historias_clinicas
+             SET bloqueada = FALSE, editable_hasta = NOW() + INTERVAL '2 hours', actualizado_en = NOW()
+             WHERE id_historia = $1 AND estado = 'Finalizada' RETURNING id_historia`,
+            [id]
+        );
+        if (!r.rows[0]) throw Object.assign(new Error("Historia no encontrada o no está finalizada"), { status: 404 });
+
+        await client.query(
+            `INSERT INTO historia_ediciones(id_historia, id_usuario, campo_modificado, observacion, autorizada_por)
+             VALUES ($1, $2, 'desbloqueo', $3, $2)`,
+            [id, usuario.id, observacion]
+        );
+        await client.query("COMMIT");
+        await audit({ idUsuario: usuario.id, accion: "HISTORIA_DESBLOQUEADA", tabla: "historias_clinicas", registroId: Number(id), detalle: { observacion }, req });
+        return { mensaje: "Historia desbloqueada para edición durante 2 horas", editable_hasta_horas: 2 };
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally { client.release(); }
+};
+
+/** Historial de ediciones de una historia clinica (para mostrar los cambios). */
+exports.historialEdiciones = async (id) => {
+    const r = await pool.query(
+        `SELECT e.id_edicion, e.campo_modificado, e.observacion, e.fecha,
+                concat_ws(' ', u.nombre, u.apellido) AS usuario,
+                concat_ws(' ', a.nombre, a.apellido) AS autorizada_por
+         FROM historia_ediciones e
+         LEFT JOIN usuarios u ON u.id_usuario = e.id_usuario
+         LEFT JOIN usuarios a ON a.id_usuario = e.autorizada_por
+         WHERE e.id_historia = $1
+         ORDER BY e.fecha DESC`,
+        [id]
+    );
+    return r.rows;
 };
 
 exports.finalizar = async (id, usuario, req) => {

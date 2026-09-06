@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, AlertTriangle, X, ZoomIn } from "lucide-react";
+import { ArrowLeft, ShoppingCart, AlertTriangle, X, ZoomIn, Glasses } from "lucide-react";
 import { apiFetch } from "../../services/api";
 import { useCart } from "../../context/CartContext";
+import TryOnModal from "../../components/tryon/TryOnModal";
+import { esArmazon } from "../../components/tryon/frameShapes";
 
 export default function ProductoDetalle() {
   const { id } = useParams();
@@ -16,6 +18,7 @@ export default function ProductoDetalle() {
   const [cantidad, setCantidad] = useState(1);
   const [imagenActiva, setImagenActiva] = useState(0);
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [probadorAbierto, setProbadorAbierto] = useState(false);
 
   useEffect(() => {
     const cargar = async () => {
@@ -40,22 +43,40 @@ export default function ProductoDetalle() {
       currency: "USD",
     }).format(valor || 0);
 
-  // Construir array de imágenes dinámicamente (sin duplicados)
-  const imagenes = [];
+  // Construir la lista de imágenes del carrusel (sin duplicados):
+  //   1) la portada (imagen_data), si existe;
+  //   2) la galería de producto_imagenes, ya ordenada por el backend;
+  //   3) si no hay ninguna, un placeholder.
+  // Así los productos antiguos (solo imagen_data) siguen funcionando igual.
   const PLACEHOLDER = "https://placehold.co/600x400/f8f9fa/ced4da?text=Sin+Imagen";
+  const galeria = Array.isArray(producto?.imagenes)
+    ? producto.imagenes.map((img) => img?.ruta).filter(Boolean)
+    : [];
 
-  if (producto?.imagen_data) {
-    imagenes.push(producto.imagen_data);
-  } else {
-    imagenes.push(PLACEHOLDER);
-  }
-
-  // Si en el futuro hay más imágenes, se agregarían aquí
-  // Por ahora solo usamos la principal
+  const imagenes = [];
+  if (producto?.imagen_data) imagenes.push(producto.imagen_data);
+  for (const ruta of galeria) if (!imagenes.includes(ruta)) imagenes.push(ruta);
+  if (imagenes.length === 0) imagenes.push(PLACEHOLDER);
 
   const handleComprar = () => {
     if (producto.stock <= 0) return;
     addToCart(producto, cantidad, { tipo: opcion });
+    navigate("/dashboard/carrito");
+  };
+
+  // El probador solo tiene sentido en monturas. No existe un campo `tipo` en
+  // productos: la clasificacion real viene de la categoria y del nombre.
+  const permiteProbador = esArmazon(producto);
+
+  const handleProbadoAlCarrito = (imagenPrueba) => {
+    setProbadorAbierto(false);
+    if (producto.stock <= 0) return;
+    addToCart(
+      producto,
+      cantidad,
+      { tipo: opcion },
+      imagenPrueba ? { prueba_virtual: imagenPrueba } : null
+    );
     navigate("/dashboard/carrito");
   };
 
@@ -350,6 +371,29 @@ export default function ProductoDetalle() {
               </button>
             </div>
 
+            {permiteProbador && (
+              <button
+                onClick={() => setProbadorAbierto(true)}
+                style={{
+                  width: "100%",
+                  padding: "0.8rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.5rem",
+                  fontSize: "1.05rem",
+                  background: "#fff",
+                  color: "#0f3460",
+                  border: "2px solid #0f3460",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  transition: "background 0.2s",
+                }}
+              >
+                <Glasses size={18} /> Probar modelo
+              </button>
+            )}
+
             {producto.stock > 0 && producto.stock <= producto.stock_minimo && (
               <div
                 style={{
@@ -367,6 +411,16 @@ export default function ProductoDetalle() {
           </div>
         </div>
       </div>
+
+      {/* PROBADOR VIRTUAL */}
+      <TryOnModal
+        abierto={probadorAbierto}
+        onCerrar={() => setProbadorAbierto(false)}
+        titulo={`Probar ${producto.nombre}`}
+        monturas={[producto]}
+        monturaInicial={producto.id_producto}
+        onAnadirAlCarrito={handleProbadoAlCarrito}
+      />
 
       {/* MODAL DE IMAGEN A PANTALLA COMPLETA (LUPA) */}
       {modalAbierto && (

@@ -13,4 +13,7 @@ router.post("/", rol(["Administrador", "Optometra"]), responder((req) => service
 router.put("/:id", rol(["Administrador", "Optometra"]), responder((req) => service.actualizar(req.params.id, req.body, req.usuario, req)));
 router.post("/:id/finalizar", rol(["Administrador", "Optometra"]), responder((req) => service.finalizar(req.params.id, req.usuario, req)));
 router.post("/:id/adendas", rol(["Administrador", "Optometra"]), responder((req) => service.agregarAdenda(req.params.id, req.body, req.usuario, req), 201));
+// Desbloqueo autorizado (solo Administrador) e historial de ediciones.
+router.post("/:id/desbloquear", rol(["Administrador"]), responder((req) => service.desbloquear(req.params.id, req.body, req.usuario, req)));
+router.get("/:id/ediciones", rol(["Administrador", "Optometra"]), responder((req) => service.historialEdiciones(req.params.id)));
 module.exports = router;

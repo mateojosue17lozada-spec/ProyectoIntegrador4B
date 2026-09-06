@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Activity, Plus } from "lucide-react";
 import { apiFetch } from "../../services/api";
+import { compatibles, esRedondeada, colorMontura, esArmazon } from "../../components/tryon/frameShapes";
 const eye = { hallazgo: "Normal", color: "#22c55e", severidad: 0 };
 const empty = {
   id_paciente: "",
@@ -80,17 +81,26 @@ function EyeDiagram({ side, value, onChange }) {
     </div>
   );
 }
-const compatibles = {
-  Redondo: ["Rectangular", "Geométrica", "Cat-eye"],
-  Cuadrado: ["Redonda", "Ovalada", "Aviador"],
-  Ovalado: ["Rectangular", "Redonda", "Cat-eye", "Aviador", "Geométrica"],
-  Corazón: ["Ovalada", "Aviador", "Cat-eye"],
-  Alargado: ["Redonda", "Geométrica", "Aviador"],
-  Diamante: ["Ovalada", "Cat-eye", "Aviador"],
-};
-function GeneratedFrame({product,size,top,rotation}){const round=["Redonda","Ovalada","Aviador"].includes(product.forma_montura),color=product.color_montura||"#263746";return <div className={`generated-frame ${round?"round":"angular"}`} style={{width:`${size}%`,top:`${top}%`,transform:`translate(-50%,-50%) rotate(${rotation}deg)`,color}} aria-label={`Vista provisional de ${product.nombre}`}><span/><i/><span/></div>}
+function GeneratedFrame({ product, size, top, rotation }) {
+  return (
+    <div
+      className={`generated-frame ${esRedondeada(product) ? "round" : "angular"}`}
+      style={{
+        width: `${size}%`,
+        top: `${top}%`,
+        transform: `translate(-50%,-50%) rotate(${rotation}deg)`,
+        color: colorMontura(product),
+      }}
+      aria-label={`Vista provisional de ${product.nombre}`}
+    >
+      <span />
+      <i />
+      <span />
+    </div>
+  );
+}
 function VirtualTryOn({ patient, products }) {
-  const frameProducts=products.filter(p=>p.imagen_data||p.forma_montura||/montura|armaz[oó]n/i.test(`${p.categoria||""} ${p.tipo_lente||""} ${p.nombre||""}`)),
+  const frameProducts=products.filter(p=>p.imagen_data||esArmazon(p)),
     available = frameProducts.length?frameProducts:products,
     recommended = available.filter(
       (p) =>

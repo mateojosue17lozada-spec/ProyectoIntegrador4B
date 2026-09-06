@@ -6,7 +6,7 @@ import { apiFetch } from "../../services/api";
 
 export default function Carrito() {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateQuantity, clearCart, totalItems, total } = useCart();
+  const { cart, removeFromCart, removeTryOnImage, updateQuantity, clearCart, totalItems, total } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -29,6 +29,8 @@ export default function Carrito() {
         detalles: cart.map((item) => ({
           id_producto: item.id_producto,
           cantidad: item.cantidad,
+          // Solo viaja si el paciente marco el consentimiento en el probador.
+          prueba_virtual: item.prueba_virtual || undefined,
         })),
       };
 
@@ -179,6 +181,47 @@ export default function Carrito() {
                   <p style={{ margin: 0, color: "#6c757d", fontSize: "0.9rem" }}>
                     Opción: {item.options?.tipo || "Estándar"}
                   </p>
+                  {item.prueba_virtual && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        marginTop: "0.5rem",
+                      }}
+                    >
+                      <img
+                        src={item.prueba_virtual}
+                        alt={`Prueba virtual de ${item.nombre}`}
+                        style={{
+                          width: "44px",
+                          height: "44px",
+                          objectFit: "cover",
+                          borderRadius: "6px",
+                          border: "1px solid #eaeaea",
+                        }}
+                      />
+                      <span style={{ fontSize: "0.8rem", color: "#28a745" }}>
+                        Prueba virtual adjunta
+                      </span>
+                      <button
+                        onClick={() => removeTryOnImage(index)}
+                        className="icon-button"
+                        title="Quitar la foto del pedido"
+                        style={{
+                          fontSize: "0.78rem",
+                          color: "#6c757d",
+                          textDecoration: "underline",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      >
+                        Quitar foto
+                      </button>
+                    </div>
+                  )}
                   <strong
                     style={{
                       display: "block",
