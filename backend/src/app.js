@@ -39,10 +39,15 @@ const expoDevOrigins = process.env.NODE_ENV === "production" ? [] : [
 ];
 const allowedOrigins = [...new Set([...configuredOrigins, ...expoDevOrigins])];
 
-// permitir comunicacion con React
+// permitir comunicacion con React y React Native
 app.use(cors({
     origin: (origin, callback) => {
+        // React Native fetch no envia header Origin → origin es undefined
         if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        // En desarrollo, permitir IPs de red local (192.168.x.x, 10.x.x.x)
+        if (process.env.NODE_ENV !== "production" && origin && /^https?:\/\/(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(origin)) {
             return callback(null, true);
         }
 

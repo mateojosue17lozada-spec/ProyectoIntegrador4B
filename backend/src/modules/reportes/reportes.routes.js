@@ -9,6 +9,7 @@ router.use(auth);
 
 // Los reportes de gestion son para Administrador; el de cierre de caja tambien
 // para Cajero (ve sus propios turnos).
+router.get("/opciones-filtros", responder(() => service.opcionesFiltros()));
 router.get("/citas", rol(["Administrador", "Optometra"]), responder((req) => service.citas(req.query)));
 router.get("/ventas", rol(["Administrador", "Cajero"]), responder((req) => service.ventas(req.query)));
 router.get("/compras", rol(["Administrador"]), responder((req) => service.compras(req.query)));

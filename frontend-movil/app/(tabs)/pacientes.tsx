@@ -1,40 +1,133 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
+import { apiFetch } from '@/services/api';
 
-const patients = [
-  { name: 'Maria Gomez', document: '0923456789', lastVisit: 'Control hace 2 dias' },
-  { name: 'Jorge Vera', document: '0911122233', lastVisit: 'Lentes en entrega' },
-  { name: 'Ana Ruiz', document: '0955566677', lastVisit: 'Examen pendiente' },
-];
+type Paciente = {
+  id_paciente: number;
+  nombre: string;
+  apellido: string;
+  cedula: string;
+  correo?: string;
+  telefono?: string;
+};
 
 export default function PatientsScreen() {
+  const { token } = useAuth();
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [filtered, setFiltered] = useState<Paciente[]>([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchPacientes = useCallback(async () => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const data = await apiFetch<Paciente[]>('/api/pacientes', { token });
+      const list = Array.isArray(data) ? data : [];
+      setPacientes(list);
+      setFiltered(list);
+    } catch (err: any) {
+      setError(err.message || 'Error al cargar pacientes');
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPacientes();
+    }, [fetchPacientes]),
+  );
+
+  const handleSearch = (text: string) => {
+    setSearch(text);
+    if (!text.trim()) {
+      setFiltered(pacientes);
+      return;
+    }
+    const q = text.toLowerCase();
+    setFiltered(
+      pacientes.filter(
+        (p) =>
+          `${p.nombre} ${p.apellido}`.toLowerCase().includes(q) ||
+          p.cedula?.includes(q),
+      ),
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#176b5b" />
+          <Text style={styles.loadingText}>Cargando pacientes...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Pacientes</Text>
-        <View style={styles.searchBox}>
-          <Text style={styles.searchText}>Buscar paciente</Text>
-        </View>
+
+        <TextInput
+          style={styles.searchBox}
+          value={search}
+          onChangeText={handleSearch}
+          placeholder="Buscar paciente..."
+          placeholderTextColor="#8a9692"
+        />
+
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
 
         <View style={styles.section}>
-          {patients.map((patient) => (
-            <View key={patient.document} style={styles.patientCard}>
-              <View style={styles.initials}>
-                <Text style={styles.initialsText}>
-                  {patient.name
-                    .split(' ')
-                    .map((part) => part[0])
-                    .join('')
-                    .slice(0, 2)}
-                </Text>
-              </View>
-              <View style={styles.info}>
-                <Text style={styles.name}>{patient.name}</Text>
-                <Text style={styles.document}>{patient.document}</Text>
-                <Text style={styles.lastVisit}>{patient.lastVisit}</Text>
-              </View>
+          {filtered.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyText}>
+                {search ? 'Sin resultados' : 'No hay pacientes registrados'}
+              </Text>
             </View>
-          ))}
+          ) : (
+            filtered.map((patient) => (
+              <View key={patient.id_paciente} style={styles.patientCard}>
+                <View style={styles.initials}>
+                  <Text style={styles.initialsText}>
+                    {`${patient.nombre?.charAt(0) || ''}${patient.apellido?.charAt(0) || ''}`
+                      .toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.info}>
+                  <Text style={styles.name}>
+                    {patient.nombre} {patient.apellido}
+                  </Text>
+                  <Text style={styles.document}>{patient.cedula}</Text>
+                  {patient.telefono ? (
+                    <Text style={styles.lastVisit}>{patient.telefono}</Text>
+                  ) : null}
+                </View>
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -45,6 +138,16 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#f4f7f6',
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  loadingText: {
+    color: '#65736f',
+    fontWeight: '700',
   },
   content: {
     padding: 18,
@@ -58,15 +161,21 @@ const styles = StyleSheet.create({
   },
   searchBox: {
     minHeight: 48,
-    justifyContent: 'center',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#d7e2df',
     backgroundColor: '#fff',
     paddingHorizontal: 14,
+    fontSize: 16,
+    color: '#172522',
   },
-  searchText: {
-    color: '#8a9692',
+  errorBanner: {
+    borderRadius: 8,
+    backgroundColor: '#fce4e4',
+    padding: 12,
+  },
+  errorText: {
+    color: '#d64545',
     fontWeight: '700',
   },
   section: {
@@ -110,5 +219,19 @@ const styles = StyleSheet.create({
   },
   lastVisit: {
     color: '#6f7c78',
+  },
+  emptyCard: {
+    minHeight: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d7e2df',
+    backgroundColor: '#fff',
+    padding: 14,
+  },
+  emptyText: {
+    color: '#8a9692',
+    fontWeight: '700',
   },
 });

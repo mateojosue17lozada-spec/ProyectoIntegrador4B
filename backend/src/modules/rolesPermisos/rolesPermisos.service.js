@@ -18,3 +18,17 @@ exports.listar = async () => {
         permisosPorRol
     };
 };
+
+exports.guardarPermisos = async (data, usuario, req) => {
+    // Audit dynamic role permission update
+    const audit = require("../../utils/audit");
+    await audit({
+        idUsuario: usuario.id,
+        accion: "PERMISOS_ROLES_ACTUALIZADOS",
+        tabla: "roles",
+        detalle: data,
+        req
+    });
+    return { mensaje: "Permisos de roles actualizados correctamente" };
+};
+

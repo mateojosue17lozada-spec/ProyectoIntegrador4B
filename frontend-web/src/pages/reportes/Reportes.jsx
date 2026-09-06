@@ -124,6 +124,13 @@ export default function Reportes() {
   const [datos, setDatos] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
+  const [opciones, setOpciones] = useState({ medicos: [], cajeros: [], proveedores: [], categorias: [] });
+
+  useEffect(() => {
+    apiFetch("/reportes/opciones-filtros")
+      .then(setOpciones)
+      .catch(() => {});
+  }, []);
 
   const config = REPORTES[tipo];
 
@@ -213,11 +220,63 @@ export default function Reportes() {
                 ))}
               </select>
             </label>
+          ) : f === "medico" ? (
+            <label key={f}>
+              Médico / Optómetra
+              <select
+                value={filtros[f] || ""}
+                onChange={(e) => setFiltros({ ...filtros, [f]: e.target.value })}
+              >
+                <option value="">Todos los médicos</option>
+                {opciones.medicos.map((m) => (
+                  <option key={m.id_usuario} value={m.id_usuario}>{m.nombre}</option>
+                ))}
+              </select>
+            </label>
+          ) : f === "cajero" ? (
+            <label key={f}>
+              Cajero
+              <select
+                value={filtros[f] || ""}
+                onChange={(e) => setFiltros({ ...filtros, [f]: e.target.value })}
+              >
+                <option value="">Todos los cajeros</option>
+                {opciones.cajeros.map((c) => (
+                  <option key={c.id_usuario} value={c.id_usuario}>{c.nombre}</option>
+                ))}
+              </select>
+            </label>
+          ) : f === "proveedor" ? (
+            <label key={f}>
+              Proveedor
+              <select
+                value={filtros[f] || ""}
+                onChange={(e) => setFiltros({ ...filtros, [f]: e.target.value })}
+              >
+                <option value="">Todos los proveedores</option>
+                {opciones.proveedores.map((p) => (
+                  <option key={p.id_proveedor} value={p.id_proveedor}>{p.nombre}</option>
+                ))}
+              </select>
+            </label>
+          ) : f === "categoria" ? (
+            <label key={f}>
+              Categoría
+              <select
+                value={filtros[f] || ""}
+                onChange={(e) => setFiltros({ ...filtros, [f]: e.target.value })}
+              >
+                <option value="">Todas las categorías</option>
+                {opciones.categorias.map((cat) => (
+                  <option key={cat.id_categoria} value={cat.nombre}>{cat.nombre}</option>
+                ))}
+              </select>
+            </label>
           ) : (
             <label key={f}>
               {ETIQUETA_FILTRO[f] || f}
               <input
-                type={f.startsWith("fecha") ? "date" : ["medico", "cajero", "proveedor"].includes(f) ? "number" : "text"}
+                type={f.startsWith("fecha") ? "date" : "text"}
                 value={filtros[f] || ""}
                 onChange={(e) => setFiltros({ ...filtros, [f]: e.target.value })}
               />

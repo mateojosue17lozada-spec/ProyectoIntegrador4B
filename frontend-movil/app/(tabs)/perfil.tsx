@@ -1,18 +1,30 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/context/AuthContext';
+import { API_BASE } from '@/services/api';
 
-const items = ['Datos de usuario', 'Horario de atencion', 'Notificaciones', 'Ayuda'];
+const items = ['Datos de usuario', 'Horario de atención', 'Notificaciones', 'Ayuda'];
 
 export default function ProfileScreen() {
+  const { user, logout } = useAuth();
+
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>AM</Text>
+            <Text style={styles.avatarText}>
+              {user?.nombre
+                ?.split(' ')
+                .map((w) => w[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase() || 'OI'}
+            </Text>
           </View>
-          <Text style={styles.name}>Administrador movil</Text>
-          <Text style={styles.role}>Optica Integral</Text>
+          <Text style={styles.name}>{user?.nombre || 'Usuario'}</Text>
+          <Text style={styles.role}>{user?.rol || 'Óptica Integral'}</Text>
+          <Text style={styles.email}>{user?.correo || ''}</Text>
         </View>
 
         <View style={styles.section}>
@@ -25,9 +37,13 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.footerCard}>
-          <Text style={styles.footerTitle}>Version movil</Text>
-          <Text style={styles.footerCopy}>Vistas preparadas para conectar la logica despues.</Text>
+          <Text style={styles.footerTitle}>Servidor API</Text>
+          <Text style={styles.footerCopy}>{API_BASE}</Text>
         </View>
+
+        <Pressable style={styles.logoutButton} onPress={logout}>
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -75,6 +91,11 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontWeight: '700',
   },
+  email: {
+    color: '#9dc5bb',
+    marginTop: 3,
+    fontSize: 13,
+  },
   section: {
     gap: 10,
   },
@@ -114,5 +135,18 @@ const styles = StyleSheet.create({
   footerCopy: {
     color: '#65736f',
     lineHeight: 20,
+    fontSize: 13,
+  },
+  logoutButton: {
+    minHeight: 52,
+    borderRadius: 8,
+    backgroundColor: '#d64545',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '900',
   },
 });

@@ -23,11 +23,11 @@ const generarTokenPlano = () => crypto.randomBytes(32).toString("hex");
 const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
 
 const validarPassword = (password) => {
-    if (typeof password !== "string" || password.length < 10 || password.length > 128) {
-        throw Object.assign(new Error("La contraseña debe tener entre 10 y 128 caracteres"), { status: 400 });
+    if (typeof password !== "string" || password.length < 12 || password.length > 128) {
+        throw Object.assign(new Error("La contraseña debe tener al menos 12 caracteres"), { status: 400 });
     }
-    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
-        throw Object.assign(new Error("La contraseña debe incluir mayúscula, minúscula y número"), { status: 400 });
+    if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[\W_]/.test(password)) {
+        throw Object.assign(new Error("La contraseña debe incluir al menos una letra mayúscula, una minúscula, un número y un carácter especial (@#$%&*!_-)"), { status: 400 });
     }
 };
 

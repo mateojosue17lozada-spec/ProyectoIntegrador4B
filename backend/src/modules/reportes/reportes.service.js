@@ -150,3 +150,33 @@ exports.cierreCaja = async (q = {}) => {
     );
     return { total: r.rowCount, filas: r.rows };
 };
+
+/** GET /reportes/opciones-filtros */
+exports.opcionesFiltros = async () => {
+    const medicos = await pool.query(
+        `SELECT u.id_usuario, concat_ws(' ', u.nombre, u.apellido) AS nombre
+         FROM usuarios u JOIN roles r USING(id_rol)
+         WHERE r.nombre_rol IN ('Optometra', 'Administrador') AND u.estado=TRUE
+         ORDER BY u.nombre`
+    );
+    const cajeros = await pool.query(
+        `SELECT u.id_usuario, concat_ws(' ', u.nombre, u.apellido) AS nombre
+         FROM usuarios u JOIN roles r USING(id_rol)
+         WHERE r.nombre_rol IN ('Cajero', 'Administrador') AND u.estado=TRUE
+         ORDER BY u.nombre`
+    );
+    const proveedores = await pool.query(
+        `SELECT id_proveedor, nombre FROM proveedores WHERE activo=TRUE ORDER BY nombre`
+    );
+    const categorias = await pool.query(
+        `SELECT id_categoria, nombre FROM categorias_producto WHERE activo=TRUE ORDER BY nombre`
+    );
+
+    return {
+        medicos: medicos.rows,
+        cajeros: cajeros.rows,
+        proveedores: proveedores.rows,
+        categorias: categorias.rows
+    };
+};
+

@@ -10,6 +10,10 @@ const pool = require("../../config/database");
 // Obtener profesionales (incluye rol Paciente)
 router.get("/profesionales", auth, rol(["Administrador", "Optometra", "Cajero", "Vendedor", "Paciente"]), responder(() => service.profesionales()));
 
+// Consultar disponibilidad de un profesional en fecha determinada
+router.get("/disponibilidad", auth, rol(["Administrador", "Optometra", "Cajero", "Vendedor", "Paciente"]), responder((req) => service.disponibilidad(req.query.id_usuario, req.query.fecha_cita)));
+
+
 // Citas del paciente logueado (busca por correo, cédula o coincidencia de nombre/apellido)
 router.get("/mis-citas", auth, rol(["Paciente"]), responder(async (req) => {
     const p = await pool.query(

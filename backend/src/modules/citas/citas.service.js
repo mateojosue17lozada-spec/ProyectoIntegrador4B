@@ -121,3 +121,15 @@ exports.registrarPagoPrevio = async (id, data, usuario, req) => {
 };
 
 exports.cancelar = async (id, data, usuario, req) => exports.actualizarEstado(id, { estado: "Cancelada", motivo_cancelacion: data?.motivo_cancelacion }, usuario, req);
+
+exports.disponibilidad = async (id_usuario, fecha_cita) => {
+    if (!id_usuario || !fecha_cita) return [];
+    const r = await pool.query(
+        `SELECT hora_cita FROM citas
+         WHERE id_usuario=$1 AND fecha_cita=$2::date
+           AND estado NOT IN ('Cancelada', 'No asistio')`,
+        [Number(id_usuario), fecha_cita]
+    );
+    return r.rows.map((row) => String(row.hora_cita).slice(0, 5));
+};
+

@@ -9,5 +9,6 @@ const router = express.Router();
 
 router.use(auth, rol(["Administrador"]));
 router.get("/", responder(() => service.listar()));
+router.post("/guardar", responder((req) => service.guardarPermisos(req.body, req.usuario, req)));
 
 module.exports = router;
