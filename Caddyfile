@@ -1,13 +1,11 @@
-# Caddyfile para SSL automático gratuito con DuckDNS / Let's Encrypt
-# Reemplaza TU_DOMINIO.duckdns.org por tu dominio real de DuckDNS
-{$DOMAIN_NAME:localhost} {
-    # Proxy para el frontend web (React SPA)
-    handle_path /* {
-        reverse_proxy frontend:80
-    }
-
-    # Proxy para el backend API
+optica-integral.duckdns.org {
+    # Proxy para las peticiones API del backend
     handle /api/* {
         reverse_proxy backend:3000
+    }
+
+    # Proxy para el frontend web Nginx
+    handle {
+        reverse_proxy frontend:80
     }
 }

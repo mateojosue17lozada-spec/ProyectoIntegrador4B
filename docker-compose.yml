@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build:
@@ -14,9 +12,17 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
+      - DATA_ENCRYPTION_KEY=${DATA_ENCRYPTION_KEY}
       - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - SMTP_SERVICE=${SMTP_SERVICE}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_APP_PASSWORD=${EMAIL_APP_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - FRONTEND_URL=${FRONTEND_URL}
     env_file:
       - .env
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -27,6 +33,35 @@ services:
     container_name: optica_frontend
     restart: always
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - backend
+    networks:
+      - app-network
+
+  caddy:
+    image: caddy:latest
+    container_name: optica_caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - DUCKDNS_TOKEN=${DUCKDNS_TOKEN:-61a3a0ee-2bbd-4eae-8822-33ec4c12c6d1}
+    networks:
+      - app-network
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  app-network:
+    driver: bridge
