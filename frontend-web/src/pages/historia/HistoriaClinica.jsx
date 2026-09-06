@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, CheckCircle2, Eye, FileHeart, Glasses, Printer, Save, ScanEye, Stethoscope, X } from "lucide-react";
 import { apiFetch } from "../../services/api";
+import { useAuth } from "../../hooks/useAuth";
 
 const sections = {
   lensometria:["od","oi","ao","add","prismas","av_vl_cc","av_vp_cc","tipo_lente","material","filtro","tiempo_uso","distancia_pupilar","observaciones"],
@@ -19,7 +20,7 @@ const initial = {
   antecedentes_familiares_oculares:"",antecedentes_familiares_generales:"",
   ...Object.fromEntries(Object.entries(sections).map(([key,keys])=>[key,emptyObject(keys)])),
   observaciones_patologicas:"",tratamiento:"",nombre_examinador:"",nivel_paralelo:"",jornada:"",
-  consentimiento_informado:false,firma_paciente:""
+  consentimiento_informado:false,firma_paciente:"",observacion:""
 };
 const label = (value) => value.replaceAll("_"," ").replace(/\b\w/g,(letter)=>letter.toUpperCase());
 const Field = ({name,value,onChange,type="text",wide=false,required=false}) => <label className={wide?"wide":""}>{label(name)}{type==="textarea"?<textarea value={value??""} required={required} onChange={(e)=>onChange(e.target.value)}/>:<input type={type} value={value??""} required={required} onChange={(e)=>onChange(e.target.value)}/>}</label>;
@@ -30,6 +31,8 @@ const clinicalColor=(text)=>{const value=String(text||"").toLowerCase();if(/norm
 const ClinicalEye=({side,text})=>{const color=clinicalColor(text);return <div className="eye-editor"><strong>{side}</strong><svg viewBox="0 0 240 125"><path d="M12 63 Q60 8 120 12 Q180 8 228 63 Q180 117 120 113 Q60 117 12 63Z" fill="#fff" stroke="#31566a" strokeWidth="5"/><circle cx="120" cy="63" r="39" fill={color} opacity=".35"/><circle cx="120" cy="63" r="22" fill={color}/><circle cx="120" cy="63" r="9" fill="#111827"/><circle cx="111" cy="53" r="5" fill="#fff" opacity=".8"/></svg><small>{text||"Sin hallazgos registrados"}</small></div>};
 
 export default function HistoriaClinica(){
+  const { user }=useAuth();
+  const esAdmin=user?.rol==="Administrador";
   const [rows,setRows]=useState([]),[patients,setPatients]=useState([]),[appointments,setAppointments]=useState([]),[codes,setCodes]=useState([]);
   const [form,setForm]=useState(initial),[edit,setEdit]=useState(null),[open,setOpen]=useState(false),[message,setMessage]=useState("");
   const load=useCallback(async()=>{try{const [h,p,c,cie]=await Promise.all([apiFetch("/historia"),apiFetch("/pacientes"),apiFetch("/citas"),apiFetch("/historia/cie10/catalogo")]);setRows(h);setPatients(p);setAppointments(c.filter((item)=>item.pago_previo&&!["Cancelada","No asistio"].includes(item.estado)));setCodes(cie)}catch(error){setMessage(error.message)}},[]);
@@ -41,6 +44,7 @@ export default function HistoriaClinica(){
   const save=async(event)=>{event.preventDefault();try{await apiFetch(edit?`/historia/${edit}`:"/historia",{method:edit?"PUT":"POST",body:{...form,diagnostico_cie10:form.diagnostico.cie10}});setMessage("Historia clínica guardada correctamente");close();load()}catch(error){setMessage(error.message)}};
   const editRow=(row)=>{const merged={...initial,...row};for(const key of Object.keys(sections))merged[key]={...initial[key],...(row[key]||{})};setForm(merged);setEdit(row.id_historia);setOpen(true);window.scrollTo({top:0,behavior:"smooth"})};
   const block=async(id)=>{try{await apiFetch(`/historia/${id}/bloquear`,{method:"POST"});setMessage("Historia cerrada y protegida legalmente");load()}catch(error){setMessage(error.message)}};
+  const desbloquear=async(id)=>{const observacion=window.prompt("Motivo de la autorización para reabrir esta historia (obligatorio):");if(!observacion||!observacion.trim())return;try{const r=await apiFetch(`/historia/${id}/desbloquear`,{method:"POST",body:{observacion:observacion.trim()}});setMessage(r.mensaje||"Historia desbloqueada");load()}catch(error){setMessage(error.message)}};
   const printRow=(row)=>{editRow(row);setTimeout(()=>window.print(),250)};
   return <section className="module-page">
     <header className="page-header"><div><span className="eyebrow">Expediente optométrico</span><h1>Historia clínica</h1><p>Registro estructurado, cifrado y editable durante 24 horas.</p></div><button onClick={()=>open?close():(setOpen(true),setForm(initial))}>{open?<><X size={17}/> Cancelar</>:<><FileHeart size={17}/> Nueva historia</>}</button></header>
@@ -77,9 +81,9 @@ export default function HistoriaClinica(){
           <Field name="tratamiento_disposicion_conducta" value={form.tratamiento} onChange={(value)=>setForm({...form,tratamiento:value})} type="textarea" wide/>
         </div>
       </Section>
-      <Section icon={CheckCircle2} title="Consentimiento y firma"><div className="field-grid cols-3"><label className="checkbox-label"><input type="checkbox" checked={form.consentimiento_informado} onChange={(e)=>setForm({...form,consentimiento_informado:e.target.checked})}/>Consentimiento informado aceptado</label><Field name="firma_paciente" value={form.firma_paciente} onChange={(value)=>setForm({...form,firma_paciente:value})} required/></div></Section>
+      <Section icon={CheckCircle2} title="Consentimiento y firma"><div className="field-grid cols-3"><label className="checkbox-label"><input type="checkbox" checked={form.consentimiento_informado} onChange={(e)=>setForm({...form,consentimiento_informado:e.target.checked})}/>Consentimiento informado aceptado</label><Field name="firma_paciente" value={form.firma_paciente} onChange={(value)=>setForm({...form,firma_paciente:value})} required/></div>{edit&&<label className="wide">Motivo de la edición (obligatorio al modificar una historia finalizada)<textarea value={form.observacion??""} onChange={(e)=>setForm({...form,observacion:e.target.value})} placeholder="Describe por qué se modifica la historia"/></label>}</Section>
       <div className="sticky-actions"><button type="button" className="secondary" onClick={close}>Cancelar</button><button><Save size={17}/> {edit?"Actualizar historia":"Guardar historia"}</button></div>
     </form></>}
-    {!open&&<div className="table-wrap"><table><thead><tr><th>N.º</th><th>Paciente</th><th>CIE-10</th><th>Fecha</th><th>Estado legal</th><th>Acciones</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id_historia}><td>HC-{String(row.id_historia).padStart(6,"0")}</td><td>{row.paciente_apellido} {row.paciente_nombre}</td><td>{row.diagnostico_cie10||"—"}</td><td>{new Date(row.creado_en).toLocaleString()}</td><td><span className="status-pill"><span/>{row.bloqueada_legal?"Cerrada":"Editable"}</span></td><td><button className="secondary" onClick={()=>printRow(row)}><Printer size={14}/></button>{!row.bloqueada_legal&&<><button onClick={()=>editRow(row)}>Editar</button><button className="secondary" onClick={()=>block(row.id_historia)}>Cerrar</button></>}</td></tr>)}</tbody></table>{!rows.length&&<div className="empty">No hay historias clínicas registradas.</div>}</div>}
+    {!open&&<div className="table-wrap"><table><thead><tr><th>N.º</th><th>Paciente</th><th>CIE-10</th><th>Fecha</th><th>Estado legal</th><th>Acciones</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id_historia}><td>HC-{String(row.id_historia).padStart(6,"0")}</td><td>{row.paciente_apellido} {row.paciente_nombre}</td><td>{row.diagnostico_cie10||"—"}</td><td>{new Date(row.creado_en).toLocaleString()}</td><td><span className="status-pill"><span/>{row.bloqueada_legal?"Cerrada":"Editable"}</span></td><td><button className="secondary" onClick={()=>printRow(row)}><Printer size={14}/></button>{!row.bloqueada_legal&&<><button onClick={()=>editRow(row)}>Editar</button><button className="secondary" onClick={()=>block(row.id_historia)}>Cerrar</button></>}{row.bloqueada_legal&&esAdmin&&<button className="secondary" onClick={()=>desbloquear(row.id_historia)}>Desbloquear</button>}</td></tr>)}</tbody></table>{!rows.length&&<div className="empty">No hay historias clínicas registradas.</div>}</div>}
   </section>;
 }

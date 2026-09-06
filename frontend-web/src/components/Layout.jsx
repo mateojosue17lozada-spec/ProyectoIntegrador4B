@@ -34,6 +34,7 @@ const items = [
     { group: "Administración", to: "/dashboard/caja", label: "Caja", icon: CreditCard, roles: ["Administrador", "Cajero"] },
     { group: "Administración", to: "/dashboard/compras", label: "Compras", icon: ShoppingCart, roles: ["Administrador"] },
     { group: "Administración", to: "/dashboard/cartera", label: "Cartera", icon: WalletCards, roles: ["Administrador", "Cajero"] },
+    { group: "Control", to: "/dashboard/reportes", label: "Reportes", icon: ClipboardPlus, roles: ["Administrador", "Optometra", "Cajero", "Vendedor"] },
     { group: "Control", to: "/dashboard/usuarios", label: "Usuarios y auditoría", icon: ClipboardPlus, roles: ["Administrador"] },
     { group: "Control", to: "/dashboard/roles-permisos", label: "Roles y permisos", icon: ShieldCheck, roles: ["Administrador"] },
     { group: "Mi Espacio", to: "/dashboard", label: "Inicio", icon: LayoutDashboard, roles: ["Paciente"] },
