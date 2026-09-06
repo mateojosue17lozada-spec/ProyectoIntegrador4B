@@ -123,6 +123,12 @@ export function CrudPage({
                     />
                   )}
                 </>
+              ) : field.type === "multifile" ? (
+                <MultiFile
+                  valor={Array.isArray(form[field.name]) ? form[field.name] : []}
+                  onCambio={(lista) => setForm({ ...form, [field.name]: lista })}
+                  onError={setMessage}
+                />
               ) : (
                 <input
                   type={field.type || "text"}
@@ -191,5 +197,61 @@ export function CrudPage({
       </div>}
       {!loading&&filtered.length>pageSize&&<div className="pagination"><button className="secondary" disabled={page===1} onClick={()=>setPage(page-1)}>Anterior</button><span>Página {page} de {pages}</span><button className="secondary" disabled={page===pages} onClick={()=>setPage(page+1)}>Siguiente</button></div>}
     </section>
+  );
+}
+
+/**
+ * Carga de varias imagenes con previsualizacion, borrado y reordenamiento.
+ * Guarda un array de data URLs (base64) en el formulario; el orden del array es
+ * el orden del carrusel en el catalogo. Cada archivo se comprime en el cliente.
+ */
+function MultiFile({ valor, onCambio, onError }) {
+  const MAX = 8;
+
+  const agregar = async (event) => {
+    const archivos = Array.from(event.target.files || []);
+    event.target.value = ""; // permite volver a elegir los mismos archivos
+    try {
+      const nuevas = [];
+      for (const archivo of archivos) {
+        if (valor.length + nuevas.length >= MAX) break;
+        nuevas.push(await imageToDataUrl(archivo));
+      }
+      onCambio([...valor, ...nuevas].slice(0, MAX));
+    } catch (error) {
+      onError?.(error.message);
+    }
+  };
+
+  const quitar = (i) => onCambio(valor.filter((_, j) => j !== i));
+
+  const mover = (i, delta) => {
+    const j = i + delta;
+    if (j < 0 || j >= valor.length) return;
+    const copia = [...valor];
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+    onCambio(copia);
+  };
+
+  return (
+    <>
+      <input type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={agregar} />
+      {valor.length > 0 && (
+        <div className="multifile-grid">
+          {valor.map((src, i) => (
+            <div key={i} className="multifile-item">
+              <img src={src} alt={`Imagen ${i + 1}`} />
+              <span className="multifile-orden">{i + 1}</span>
+              <div className="multifile-acciones">
+                <button type="button" onClick={() => mover(i, -1)} disabled={i === 0} title="Subir">↑</button>
+                <button type="button" onClick={() => mover(i, 1)} disabled={i === valor.length - 1} title="Bajar">↓</button>
+                <button type="button" className="quitar" onClick={() => quitar(i)} title="Quitar">✕</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <small className="multifile-nota">{valor.length}/{MAX} imágenes. La primera es la portada del carrusel.</small>
+    </>
   );
 }

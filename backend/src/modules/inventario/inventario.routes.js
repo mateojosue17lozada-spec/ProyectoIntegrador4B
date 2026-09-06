@@ -29,6 +29,7 @@ router.get("/catalogo/:id", responder(req => service.detalleCatalogo(req.params.
 // Rutas para pedidos (paciente y admin/cajero)
 router.post("/pedido", rol(["Paciente"]), responder(req => service.crearPedidoPendiente(req.body, req.usuario, req), 201));
 router.get("/pedidos", rol(["Administrador", "Cajero"]), responder(req => service.listarPedidosPendientes(req.query)));
+router.get("/pedido/:id/prueba/:idProducto", rol(["Administrador", "Cajero", "Optometra"]), responder(req => service.pruebaVirtualPedido(req.params.id, req.params.idProducto)));
 router.post("/pedido/:id/convertir", rol(["Administrador", "Cajero"]), responder(req => service.convertirPedidoAFactura(req.params.id, req.usuario, req)));
 
 module.exports = router;

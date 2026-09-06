@@ -5,8 +5,14 @@ import { CrudPage } from "../../components/CrudPage";
 const fields = [
   {
     name: "imagen_data",
-    label: "Imagen frontal (PNG transparente ideal)",
+    label: "Imagen frontal / portada (PNG transparente ideal)",
     type: "file",
+  },
+  {
+    name: "imagenes",
+    label: "Galería (varias imágenes, arrastra el orden con ↑ ↓)",
+    type: "multifile",
+    defaultValue: [],
   },
   {
     name: "forma_montura",

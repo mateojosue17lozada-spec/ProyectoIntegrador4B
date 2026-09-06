@@ -1,0 +1,893 @@
+[
+  {
+    "id": "SEC-01",
+    "modulo": "Seguridad",
+    "descripcion": "Login Administrador",
+    "esperado": "HTTP 200 + token en cookie",
+    "obtenido": "HTTP 200 + token",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-02",
+    "modulo": "Seguridad",
+    "descripcion": "Login Optometra",
+    "esperado": "HTTP 200 + token en cookie",
+    "obtenido": "HTTP 200 + token",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-03",
+    "modulo": "Seguridad",
+    "descripcion": "Login Cajero",
+    "esperado": "HTTP 200 + token en cookie",
+    "obtenido": "HTTP 200 + token",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-04",
+    "modulo": "Seguridad",
+    "descripcion": "Login Vendedor",
+    "esperado": "HTTP 200 + token en cookie",
+    "obtenido": "HTTP 200 + token",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-06",
+    "modulo": "Seguridad",
+    "descripcion": "Ruta protegida sin token",
+    "esperado": "HTTP 401",
+    "obtenido": "HTTP 401",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-07",
+    "modulo": "Seguridad",
+    "descripcion": "Token manipulado",
+    "esperado": "HTTP 401",
+    "obtenido": "HTTP 401",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-08",
+    "modulo": "Seguridad",
+    "descripcion": "Login con contrasena incorrecta",
+    "esperado": "HTTP 401",
+    "obtenido": "HTTP 401",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-09",
+    "modulo": "Seguridad",
+    "descripcion": "Bloqueo tras 3 intentos fallidos",
+    "esperado": "usuario bloqueado=true y HTTP 403",
+    "obtenido": "HTTP 403, bloqueado=true, intentos=3",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-10",
+    "modulo": "Seguridad",
+    "descripcion": "Login correcto estando bloqueado",
+    "esperado": "HTTP 403 (rechazado)",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-11",
+    "modulo": "Seguridad",
+    "descripcion": "Solicitar recuperacion de contrasena",
+    "esperado": "HTTP 200 y token generado en BD",
+    "obtenido": "HTTP 200, tokens activos=1",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-12",
+    "modulo": "Seguridad",
+    "descripcion": "Restablecer con token invalido",
+    "esperado": "HTTP 400",
+    "obtenido": "HTTP 400",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "SEC-13",
+    "modulo": "Seguridad",
+    "descripcion": "Token invalidado tras logout",
+    "esperado": "HTTP 401",
+    "obtenido": "HTTP 401",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "MAN-03",
+    "modulo": "Mantenimiento",
+    "descripcion": "Existe el rol Paciente en el catalogo",
+    "esperado": "rol Paciente presente",
+    "obtenido": "id_rol=1",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "MAN-04",
+    "modulo": "Mantenimiento",
+    "descripcion": "Administrador crea usuario Paciente",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200 Usuario creado correctamente",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "MAN-05",
+    "modulo": "Mantenimiento",
+    "descripcion": "El nuevo Paciente puede iniciar sesion",
+    "esperado": "HTTP 200 + token",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-01",
+    "modulo": "Permisos",
+    "descripcion": "Vendedor no lista usuarios",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-02",
+    "modulo": "Permisos",
+    "descripcion": "Administrador lista usuarios",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-03",
+    "modulo": "Permisos",
+    "descripcion": "Vendedor no accede a caja",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-04",
+    "modulo": "Permisos",
+    "descripcion": "Cajero accede a caja",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-05",
+    "modulo": "Permisos",
+    "descripcion": "Cajero no lista historias clinicas",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-06",
+    "modulo": "Permisos",
+    "descripcion": "Optometra lista historias clinicas",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-07",
+    "modulo": "Permisos",
+    "descripcion": "Paciente no accede al dashboard interno",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-08",
+    "modulo": "Permisos",
+    "descripcion": "Paciente no accede al inventario admin",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-09",
+    "modulo": "Permisos",
+    "descripcion": "Optometra no usa endpoint de paciente",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "PER-10",
+    "modulo": "Permisos",
+    "descripcion": "Optometra no accede a compras",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "MAN-01",
+    "modulo": "Mantenimiento",
+    "descripcion": "Vendedor intenta crear usuario",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 403",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "MAN-02",
+    "modulo": "Mantenimiento",
+    "descripcion": "Contrasena debil rechazada",
+    "esperado": "HTTP 400",
+    "obtenido": "HTTP 400 La contraseña debe tener entre 10 y 128 caracteres",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "MAN-06",
+    "modulo": "Mantenimiento",
+    "descripcion": "Usuario desactivado no puede entrar",
+    "esperado": "HTTP 401",
+    "obtenido": "PATCH 200, login 401",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "MAN-07",
+    "modulo": "Mantenimiento",
+    "descripcion": "Auditoria registra eventos",
+    "esperado": "al menos 1 registro",
+    "obtenido": "20 registros",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-01",
+    "modulo": "Citas",
+    "descripcion": "Paciente consulta profesionales",
+    "esperado": "HTTP 200 con lista",
+    "obtenido": "HTTP 200, 2 profesionales",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-02",
+    "modulo": "Citas",
+    "descripcion": "Reservar cita en fecha futura",
+    "esperado": "HTTP 201",
+    "obtenido": "HTTP 201 ",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-03",
+    "modulo": "Citas",
+    "descripcion": "Reservar cita en fecha pasada",
+    "esperado": "rechazo HTTP 4xx",
+    "obtenido": "HTTP 400 No se pueden agendar citas en fechas pasadas",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-04",
+    "modulo": "Citas",
+    "descripcion": "Reservar en horario ya ocupado",
+    "esperado": "rechazo HTTP 4xx",
+    "obtenido": "HTTP 409 Ya existe una cita en ese horario",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-05",
+    "modulo": "Citas",
+    "descripcion": "Paciente ve sus citas",
+    "esperado": "lista con al menos 1",
+    "obtenido": "HTTP 200, 1 citas",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-06",
+    "modulo": "Citas",
+    "descripcion": "Reagendar cita a fecha futura",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200 ",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-07",
+    "modulo": "Citas",
+    "descripcion": "Reagendar a fecha pasada",
+    "esperado": "rechazo HTTP 4xx",
+    "obtenido": "HTTP 400 No se pueden agendar citas en fechas pasadas",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-08",
+    "modulo": "Citas",
+    "descripcion": "Cancelar cita propia",
+    "esperado": "estado=Cancelada",
+    "obtenido": "HTTP 200, estado=Cancelada",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-09",
+    "modulo": "Citas",
+    "descripcion": "Cancelar una cita ya cancelada",
+    "esperado": "rechazo HTTP 400",
+    "obtenido": "HTTP 400 La cita ya está cancelada",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CIT-10",
+    "modulo": "Citas",
+    "descripcion": "Optometra consulta la agenda",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-01",
+    "modulo": "Historia clinica",
+    "descripcion": "Optometra crea historia clinica (anamnesis)",
+    "esperado": "HTTP 201",
+    "obtenido": "HTTP 201 ",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-02",
+    "modulo": "Historia clinica",
+    "descripcion": "Finalizar historia fija ventana de 24 h",
+    "esperado": "estado=Finalizada y editable_hasta = ahora + 24 h",
+    "obtenido": "HTTP 200, estado=Finalizada, editable_hasta=Mon Sep 07 2026 17:45:42 GMT-0500 (hora de Ecuador)",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-03",
+    "modulo": "Historia clinica",
+    "descripcion": "Editar dentro de las 24 h",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-04",
+    "modulo": "Historia clinica",
+    "descripcion": "Simular vencimiento de las 24 h",
+    "esperado": "editable_hasta en el pasado",
+    "obtenido": "vencida=true",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-05",
+    "modulo": "Historia clinica",
+    "descripcion": "Editar DESPUES de 24 h sin autorizacion",
+    "esperado": "rechazo HTTP 403/409 y datos intactos",
+    "obtenido": "HTTP 500, datos modificados=false",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-06",
+    "modulo": "Historia clinica",
+    "descripcion": "Edicion exige observacion con el motivo",
+    "esperado": "rechazo si falta el motivo de la edicion",
+    "obtenido": "HTTP 500",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-07",
+    "modulo": "Historia clinica",
+    "descripcion": "Existe flujo de autorizacion del administrador",
+    "esperado": "endpoint de solicitud/autorizacion disponible",
+    "obtenido": "HTTP 404 en todas las rutas probadas: NO IMPLEMENTADO",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "HC-08",
+    "modulo": "Historia clinica",
+    "descripcion": "Campo para el motivo obligatorio de edicion",
+    "esperado": "columna motivo_edicion o equivalente",
+    "obtenido": "no existe. Columnas: id_historia, id_paciente, id_cita, id_optometra, motivo, antecedentes_personales, antecedentes_familiares, antecedentes_oculares, lensometria, agudeza_visual, examen_externo, reflejos_pupilares, oftalmoscopia, diagnostico_cie10, diagnostico_descripcion, examen_motor, observaciones_patologicas, tratamiento, datos_encriptados, bloqueada, editable_hasta, creado_en, actualizado_en, consultorio, consentimiento_informado, firma_paciente, nombre_examinador, nivel_paralelo, jornada, estado, finalizada_en",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "HC-09",
+    "modulo": "Historia clinica",
+    "descripcion": "Historial de cambios con detalle de lo editado",
+    "esperado": "tabla de versiones o auditoria con el contenido modificado",
+    "obtenido": "tablas de versiones=0, eventos en auditoria=3, alguno con diff=false",
+    "estado": "FALLA",
+    "severidad": "Mayor"
+  },
+  {
+    "id": "HC-10",
+    "modulo": "Historia clinica",
+    "descripcion": "Agregar adenda a historia vencida",
+    "esperado": "HTTP 201 y adenda registrada",
+    "obtenido": "HTTP 201, adendas=1",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-11",
+    "modulo": "Historia clinica",
+    "descripcion": "Adenda sin contenido",
+    "esperado": "rechazo HTTP 400",
+    "obtenido": "HTTP 400",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "HC-12",
+    "modulo": "Historia clinica",
+    "descripcion": "Cajero no consulta historias (confidencialidad)",
+    "esperado": "HTTP 403",
+    "obtenido": "HTTP 200",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "CAJ-01",
+    "modulo": "Caja",
+    "descripcion": "Abrir caja con monto de apertura",
+    "esperado": "HTTP 201 y turno abierto",
+    "obtenido": "HTTP 201 , id=3",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAJ-02",
+    "modulo": "Caja",
+    "descripcion": "Abrir una segunda caja teniendo una abierta",
+    "esperado": "rechazo HTTP 4xx",
+    "obtenido": "HTTP 500 Ocurrió un error interno",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAJ-03",
+    "modulo": "Caja",
+    "descripcion": "Abrir caja con monto negativo",
+    "esperado": "rechazo HTTP 400",
+    "obtenido": "HTTP 500",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAJ-04",
+    "modulo": "Caja",
+    "descripcion": "Facturar en efectivo, tarjeta y transferencia",
+    "esperado": "3 facturas emitidas",
+    "obtenido": "Efectivo:201 | Tarjeta:201 | Transferencia:201",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAJ-05",
+    "modulo": "Caja",
+    "descripcion": "Cerrar caja (arqueo)",
+    "esperado": "HTTP 200 y estado=Cerrada",
+    "obtenido": "HTTP 200, estado=Cerrada, esperado=175.00, contado=155.00, diferencia=-20.00",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAJ-06",
+    "modulo": "Caja (Diana)",
+    "descripcion": "Total por tipo de pago (tarjeta, transferencia, credito, mixto)",
+    "esperado": "columna presente en caja_turnos",
+    "obtenido": "NO EXISTE",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "CAJ-07",
+    "modulo": "Caja (Diana)",
+    "descripcion": "Efectivo que se queda en caja para vueltos",
+    "esperado": "columna presente en caja_turnos",
+    "obtenido": "NO EXISTE",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "CAJ-08",
+    "modulo": "Caja (Diana)",
+    "descripcion": "Efectivo retirado y enviado al banco",
+    "esperado": "columna presente en caja_turnos",
+    "obtenido": "NO EXISTE",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "CAJ-09",
+    "modulo": "Caja (Diana)",
+    "descripcion": "Observaciones del cajero",
+    "esperado": "columna presente en caja_turnos",
+    "obtenido": "presente: observaciones",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAJ-10",
+    "modulo": "Caja (Diana)",
+    "descripcion": "Responsable del cierre",
+    "esperado": "columna presente en caja_turnos",
+    "obtenido": "presente: id_cajero",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAJ-11",
+    "modulo": "Caja (Diana)",
+    "descripcion": "El arqueo guarda el desglose por forma de pago",
+    "esperado": "un total por cada forma usada",
+    "obtenido": "hubo 3 formas en el turno (Efectivo=55.00, Tarjeta=65.00, Transferencia=24.00), pero el cierre solo persiste ventas_efectivo=55.00",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "CAJ-12",
+    "modulo": "Caja",
+    "descripcion": "El efectivo esperado se calcula por turno, no por dia",
+    "esperado": "abonos y devoluciones filtrados por id_caja_turno",
+    "obtenido": "filtrados por CURRENT_DATE: con dos cajeros el mismo dia cada arqueo suma el efectivo del otro",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "CAJ-13",
+    "modulo": "Caja",
+    "descripcion": "Historial de cierres accesible",
+    "esperado": "HTTP 200 con turnos",
+    "obtenido": "HTTP 200, 3 turnos",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-01",
+    "modulo": "Facturacion",
+    "descripcion": "Factura con pago parcial genera cuenta por cobrar",
+    "esperado": "HTTP 201 y CxC con saldo",
+    "obtenido": "HTTP 201, cxc=55.00",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-02",
+    "modulo": "Facturacion",
+    "descripcion": "La venta descuenta stock",
+    "esperado": "stock 11 -> 9",
+    "obtenido": "stock=9",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-03",
+    "modulo": "Facturacion",
+    "descripcion": "Venta con stock insuficiente",
+    "esperado": "rechazo HTTP 409",
+    "obtenido": "HTTP 409 Stock insuficiente para Armazón Urban Negro",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-04",
+    "modulo": "Facturacion",
+    "descripcion": "Descuento aplicado por Cajero",
+    "esperado": "rechazo HTTP 403",
+    "obtenido": "HTTP 403 El descuento requiere autorización administrativa",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-05",
+    "modulo": "Facturacion",
+    "descripcion": "Factura sin detalles",
+    "esperado": "rechazo HTTP 400",
+    "obtenido": "HTTP 400",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-06",
+    "modulo": "Facturacion",
+    "descripcion": "Forma de pago no permitida",
+    "esperado": "rechazo HTTP 400",
+    "obtenido": "HTTP 400",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-07",
+    "modulo": "Facturacion",
+    "descripcion": "Devolucion genera nota de credito",
+    "esperado": "HTTP 2xx y nota registrada",
+    "obtenido": "HTTP 201 Devolución procesada correctamente, notas=1",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FAC-08",
+    "modulo": "Facturacion",
+    "descripcion": "La devolucion repone stock",
+    "esperado": "stock 9 -> 10",
+    "obtenido": "stock=9",
+    "estado": "FALLA",
+    "severidad": "Mayor"
+  },
+  {
+    "id": "INV-01",
+    "modulo": "Inventario",
+    "descripcion": "Crear producto con atributos opticos",
+    "esperado": "HTTP 201",
+    "obtenido": "HTTP 201 ",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "INV-02",
+    "modulo": "Inventario",
+    "descripcion": "Producto bajo el minimo se detecta",
+    "esperado": "stock <= stock_minimo",
+    "obtenido": "alerta=true",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "INV-03",
+    "modulo": "Inventario",
+    "descripcion": "El dashboard cuenta el stock bajo",
+    "esperado": "stock_bajo >= 1",
+    "obtenido": "stock_bajo=3",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "INV-04",
+    "modulo": "Inventario",
+    "descripcion": "Ajuste por merma descuenta stock",
+    "esperado": "HTTP 201 y stock 4 -> 2",
+    "obtenido": "HTTP 201, stock=2",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "INV-05",
+    "modulo": "Inventario",
+    "descripcion": "Ajuste que dejaria stock negativo",
+    "esperado": "rechazo y stock intacto",
+    "obtenido": "HTTP 500, stock=2",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAR-01",
+    "modulo": "Cartera",
+    "descripcion": "Listar cuentas por cobrar",
+    "esperado": "HTTP 200 con al menos 1",
+    "obtenido": "HTTP 200, 1 cuentas",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAR-02",
+    "modulo": "Cartera",
+    "descripcion": "Abonar a una cuenta por cobrar",
+    "esperado": "saldo 37.00 -> 32",
+    "obtenido": "HTTP 201, saldo=32.00",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAR-03",
+    "modulo": "Cartera",
+    "descripcion": "Abono superior al saldo",
+    "esperado": "rechazo HTTP 4xx",
+    "obtenido": "HTTP 400 Cuenta o monto inválido",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "CAR-04",
+    "modulo": "Cartera",
+    "descripcion": "Credito bloqueado por saldos vencidos",
+    "esperado": "rechazo HTTP 409",
+    "obtenido": "HTTP 409 Cliente bloqueado por saldos vencidos",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "COM-01",
+    "modulo": "Compras",
+    "descripcion": "Registrar proveedor",
+    "esperado": "HTTP 201",
+    "obtenido": "HTTP 201 ",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "COM-02",
+    "modulo": "Compras",
+    "descripcion": "Crear orden de compra",
+    "esperado": "HTTP 201",
+    "obtenido": "HTTP 201 ",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "COM-03",
+    "modulo": "Compras",
+    "descripcion": "Recibir orden actualiza stock",
+    "esperado": "stock 9 -> 19",
+    "obtenido": "HTTP 400 Datos incompletos o invalidos, stock=9, costo=24.00",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "COM-04",
+    "modulo": "Compras",
+    "descripcion": "La recepcion genera cuenta por pagar",
+    "esperado": "1 CxP con saldo",
+    "obtenido": "no se genero CxP",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "FLU-01",
+    "modulo": "Flujo",
+    "descripcion": "Paciente consulta el catalogo",
+    "esperado": "HTTP 200 con productos",
+    "obtenido": "HTTP 200, 9 productos",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FLU-02",
+    "modulo": "Flujo",
+    "descripcion": "Paciente abre el detalle del producto",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FLU-03",
+    "modulo": "Flujo",
+    "descripcion": "Paciente genera pedido web con prueba virtual adjunta",
+    "esperado": "HTTP 201",
+    "obtenido": "HTTP 201 , pedido=1",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FLU-04",
+    "modulo": "Innovacion",
+    "descripcion": "La imagen del probador se guarda en el pedido",
+    "esperado": "prueba_virtual_data no nula",
+    "obtenido": "tiene=true",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FLU-05",
+    "modulo": "Innovacion",
+    "descripcion": "El cajero puede ver la prueba virtual del pedido",
+    "esperado": "HTTP 200 con la imagen",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FLU-06",
+    "modulo": "Flujo",
+    "descripcion": "El cajero ve el pedido pendiente",
+    "esperado": "pedido en la lista",
+    "obtenido": "HTTP 200, encontrado=true",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "FLU-07",
+    "modulo": "Flujo",
+    "descripcion": "El cajero convierte el pedido en factura",
+    "esperado": "HTTP 2xx, pedido COMPLETADO y stock descontado",
+    "obtenido": "HTTP 500 Ocurrió un error interno, estado=PENDIENTE, stock 7 -> 7",
+    "estado": "FALLA",
+    "severidad": "Critico"
+  },
+  {
+    "id": "REP-01",
+    "modulo": "Reportes",
+    "descripcion": "Modulo de reportes",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 404: NO IMPLEMENTADO",
+    "estado": "FALLA",
+    "severidad": "Mayor"
+  },
+  {
+    "id": "REP-02",
+    "modulo": "Reportes",
+    "descripcion": "Reporte de citas",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 404: NO IMPLEMENTADO",
+    "estado": "FALLA",
+    "severidad": "Mayor"
+  },
+  {
+    "id": "REP-03",
+    "modulo": "Reportes",
+    "descripcion": "Reporte de ventas",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 404: NO IMPLEMENTADO",
+    "estado": "FALLA",
+    "severidad": "Mayor"
+  },
+  {
+    "id": "REP-04",
+    "modulo": "Reportes",
+    "descripcion": "Reporte de inventario",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 404: NO IMPLEMENTADO",
+    "estado": "FALLA",
+    "severidad": "Mayor"
+  },
+  {
+    "id": "REP-05",
+    "modulo": "Reportes",
+    "descripcion": "Reporte de cierre de caja",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 404: NO IMPLEMENTADO",
+    "estado": "FALLA",
+    "severidad": "Mayor"
+  },
+  {
+    "id": "REP-06",
+    "modulo": "Reportes",
+    "descripcion": "Sustituto: resumen del dia de facturacion",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  },
+  {
+    "id": "REP-07",
+    "modulo": "Reportes",
+    "descripcion": "Sustituto: historial de cierres de caja",
+    "esperado": "HTTP 200",
+    "obtenido": "HTTP 200",
+    "estado": "PASA",
+    "severidad": null
+  }
+]

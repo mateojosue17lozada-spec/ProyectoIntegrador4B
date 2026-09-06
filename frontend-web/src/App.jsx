@@ -15,6 +15,7 @@ import Inventario from "./pages/inventario/Inventario";
 import Compras from "./pages/compras/Compras";
 import Facturacion from "./pages/facturacion/Facturacion";
 import Caja from "./pages/caja/Caja";
+import Reportes from "./pages/reportes/Reportes";
 import Cartera from "./pages/cartera/Cartera";
 import Usuarios from "./pages/usuarios/Usuarios";
 import RolesPermisos from "./pages/roles/RolesPermisos";
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="facturacion" element={permit(["Administrador","Cajero"],<Facturacion/>)}/>
             <Route path="caja" element={permit(["Administrador","Cajero"],<Caja/>)}/>
             <Route path="cartera" element={permit(["Administrador","Cajero"],<Cartera/>)}/>
+            <Route path="reportes" element={permit(["Administrador","Optometra","Cajero","Vendedor"],<Reportes/>)}/>
             <Route path="usuarios" element={permit(["Administrador"],<Usuarios/>)}/>
             <Route path="roles-permisos" element={permit(["Administrador"],<RolesPermisos/>)}/>
         </Route>

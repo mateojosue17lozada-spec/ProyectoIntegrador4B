@@ -1,6 +1,20 @@
 const pool = require("../../config/database");
 const registrarAuditoria = require("../../utils/audit");
 
+// Tope de imagenes de galeria por producto (ademas de la principal).
+const MAX_IMAGENES_PRODUCTO = 8;
+
+// Normaliza el array `imagenes` del payload: cada elemento puede venir como
+// string base64 o como { ruta }. Valida formato y tamano con el mismo helper
+// que la imagen principal, y recorta al maximo permitido.
+const galeriaValida = (imagenes) => {
+    if (!Array.isArray(imagenes)) return null; // ausente -> no se toca la galeria
+    return imagenes
+        .slice(0, MAX_IMAGENES_PRODUCTO)
+        .map((item) => imagen(item?.ruta ?? item))
+        .filter(Boolean);
+};
+
 // Helper para validar imagen base64 (sigue igual)
 const imagen = (value) => {
     if (!value) return null;
@@ -8,6 +22,22 @@ const imagen = (value) => {
         throw Object.assign(new Error("Imagen invalida o mayor a 1.5 MB"), { status: 400 });
     }
     return value;
+};
+
+// La columna prueba_virtual_data la agrega la migracion
+// 20260906120000_pedido_prueba_virtual.sql. Si el codigo se despliega antes que
+// la migracion, el pedido debe seguir generandose sin la imagen en lugar de
+// fallar: se comprueba una sola vez y se cachea.
+let columnaPruebaVirtual = null;
+const soportaPruebaVirtual = async () => {
+    if (columnaPruebaVirtual === null) {
+        const r = await pool.query(
+            `SELECT 1 FROM information_schema.columns
+             WHERE table_name = 'pedido_detalle' AND column_name = 'prueba_virtual_data'`
+        );
+        columnaPruebaVirtual = r.rowCount > 0;
+    }
+    return columnaPruebaVirtual;
 };
 
 // ==================== LISTAR PRODUCTOS (ADMIN) ====================
@@ -28,6 +58,7 @@ exports.listar = async (filtros = {}) => {
     const sql = `
         SELECT p.*, c.nombre AS categoria,
             (p.stock <= p.stock_minimo) AS stock_bajo,
+            (SELECT COUNT(*)::int FROM producto_imagenes pi WHERE pi.id_producto = p.id_producto) AS cantidad_imagenes,
             CASE WHEN p.costo > 0 THEN ROUND(((p.precio - p.costo) / p.costo) * 100, 2) ELSE NULL END AS margen_porcentaje
         FROM productos p
         LEFT JOIN categorias_producto c USING(id_categoria)
@@ -77,6 +108,7 @@ exports.listarCatalogo = async (filtros = {}) => {
       p.eje,
       p.forma_montura,
       p.color_montura,
+      (SELECT COUNT(*)::int FROM producto_imagenes pi WHERE pi.id_producto = p.id_producto) AS cantidad_imagenes,
       c.nombre AS categoria
     FROM productos p
     LEFT JOIN categorias_producto c ON p.id_categoria = c.id_categoria
@@ -105,9 +137,17 @@ exports.detalleCatalogo = async (id) => {
             p.esfera, 
             p.cilindro, 
             p.eje,
-            p.forma_montura, 
+            p.forma_montura,
             p.color_montura,
             p.imagen_data,
+            -- Galeria de imagenes adicionales, ordenada. Vacio ('[]') si el
+            -- producto solo tiene la imagen principal o ninguna: la
+            -- compatibilidad hacia atras la resuelve el frontend usando
+            -- imagen_data como respaldo.
+            COALESCE((
+                SELECT json_agg(json_build_object('ruta', pi.ruta, 'orden', pi.orden) ORDER BY pi.orden)
+                FROM producto_imagenes pi WHERE pi.id_producto = p.id_producto
+            ), '[]') AS imagenes,
             c.nombre AS categoria
         FROM productos p
         LEFT JOIN categorias_producto c ON p.id_categoria = c.id_categoria
@@ -154,14 +194,14 @@ exports.crear = async (data, usuario, req) => {
         );
         const productoId = r.rows[0].id_producto;
 
-        // Insertar imágenes múltiples si vienen en data.imagenes (array) - opcional
-        if (data.imagenes && Array.isArray(data.imagenes)) {
-            for (let i = 0; i < data.imagenes.length; i++) {
-                const img = data.imagenes[i];
-                const ruta = img.ruta || img;
+        // Galeria de imagenes adicionales (validadas y con tope). El orden del
+        // array es el orden del carrusel.
+        const galeria = galeriaValida(data.imagenes);
+        if (galeria) {
+            for (let i = 0; i < galeria.length; i++) {
                 await client.query(
                     `INSERT INTO producto_imagenes (id_producto, ruta, orden) VALUES ($1, $2, $3)`,
-                    [productoId, ruta, i]
+                    [productoId, galeria[i], i]
                 );
             }
         }
@@ -198,15 +238,16 @@ exports.actualizar = async (id, data, usuario, req) => {
         );
         if (!r.rows[0]) throw new Error("Producto no encontrado");
 
-        // Si se envió un array de imágenes, reemplazar las existentes
-        if (data.imagenes && Array.isArray(data.imagenes)) {
+        // Solo si el payload trae `imagenes` (array) se reemplaza la galeria.
+        // Si el campo viene ausente, las imagenes existentes se conservan: asi
+        // editar otros campos del producto no borra la galeria sin querer.
+        const galeria = galeriaValida(data.imagenes);
+        if (galeria) {
             await client.query("DELETE FROM producto_imagenes WHERE id_producto = $1", [id]);
-            for (let i = 0; i < data.imagenes.length; i++) {
-                const img = data.imagenes[i];
-                const ruta = img.ruta || img;
+            for (let i = 0; i < galeria.length; i++) {
                 await client.query(
                     `INSERT INTO producto_imagenes (id_producto, ruta, orden) VALUES ($1, $2, $3)`,
-                    [id, ruta, i]
+                    [id, galeria[i], i]
                 );
             }
         }
@@ -286,6 +327,7 @@ exports.crearPedidoPendiente = async (data, usuario, req) => {
     if (!detalles || !detalles.length) throw new Error("El pedido debe tener al menos un producto");
 
     const paciente = await buscarOCrearPaciente(usuario);
+    const conPruebaVirtual = await soportaPruebaVirtual();
 
     const client = await pool.connect();
     try {
@@ -302,7 +344,13 @@ exports.crearPedidoPendiente = async (data, usuario, req) => {
             const cantidad = Number(d.cantidad);
             if (cantidad <= 0) throw new Error(`Cantidad inválida para producto ${d.id_producto}`);
             subtotal += precio * cantidad;
-            detallesConPrecio.push({ ...d, precio_unitario: precio });
+            detallesConPrecio.push({
+                ...d,
+                precio_unitario: precio,
+                // Imagen del probador virtual: llega solo si el paciente dio su
+                // consentimiento. imagen() valida formato y tamano.
+                prueba_virtual: imagen(d.prueba_virtual)
+            });
         }
 
         const impuestos = Math.round(subtotal * 0.12 * 100) / 100; // 12% IVA simulado
@@ -317,9 +365,14 @@ exports.crearPedidoPendiente = async (data, usuario, req) => {
 
         for (const d of detallesConPrecio) {
             await client.query(
-                `INSERT INTO pedido_detalle (id_pedido, id_producto, cantidad, precio_unitario)
-                VALUES ($1, $2, $3, $4)`,
-                [pedido.rows[0].id_pedido, d.id_producto, d.cantidad, d.precio_unitario]
+                conPruebaVirtual
+                    ? `INSERT INTO pedido_detalle (id_pedido, id_producto, cantidad, precio_unitario, prueba_virtual_data)
+                       VALUES ($1, $2, $3, $4, $5)`
+                    : `INSERT INTO pedido_detalle (id_pedido, id_producto, cantidad, precio_unitario)
+                       VALUES ($1, $2, $3, $4)`,
+                conPruebaVirtual
+                    ? [pedido.rows[0].id_pedido, d.id_producto, d.cantidad, d.precio_unitario, d.prueba_virtual]
+                    : [pedido.rows[0].id_pedido, d.id_producto, d.cantidad, d.precio_unitario]
             );
         }
 
@@ -404,15 +457,44 @@ exports.convertirPedidoAFactura = async (idPedido, usuario, req) => {
     }
 };
 
+/**
+ * Devuelve la imagen del probador virtual de una linea de pedido.
+ * Se sirve bajo demanda para no inflar el listado de pedidos.
+ */
+exports.pruebaVirtualPedido = async (idPedido, idProducto) => {
+    if (!(await soportaPruebaVirtual())) {
+        throw Object.assign(
+            new Error("Falta aplicar la migracion 20260906120000_pedido_prueba_virtual.sql"),
+            { status: 503 }
+        );
+    }
+    const r = await pool.query(
+        `SELECT prueba_virtual_data FROM pedido_detalle
+         WHERE id_pedido = $1 AND id_producto = $2`,
+        [idPedido, idProducto]
+    );
+    if (!r.rows[0]?.prueba_virtual_data) {
+        throw Object.assign(new Error("Este pedido no tiene prueba virtual adjunta"), { status: 404 });
+    }
+    return { prueba_virtual_data: r.rows[0].prueba_virtual_data };
+};
+
 exports.listarPedidosPendientes = async (filtros = {}) => {
     const { estado = "PENDIENTE", page = 1, limit = 20 } = filtros;
     const offset = (page - 1) * limit;
     const values = [estado, limit, offset];
+    const conPruebaVirtual = await soportaPruebaVirtual();
     const sql = `
         SELECT pp.*, 
             CONCAT(p.nombre, ' ', p.apellido) AS paciente_nombre,
             p.correo AS paciente_correo,
-            (SELECT json_agg(json_build_object('id_producto', pd.id_producto, 'cantidad', pd.cantidad, 'precio_unitario', pd.precio_unitario))
+            (SELECT json_agg(json_build_object(
+                'id_producto', pd.id_producto,
+                'cantidad', pd.cantidad,
+                'precio_unitario', pd.precio_unitario,
+                -- Solo el indicador: la imagen se pide aparte para no cargar
+                -- megabytes de base64 en cada pagina del listado.
+                'tiene_prueba_virtual', ${conPruebaVirtual ? "pd.prueba_virtual_data IS NOT NULL" : "FALSE"}))
              FROM pedido_detalle pd WHERE pd.id_pedido = pp.id_pedido) AS detalles
         FROM pedidos_pendientes pp
         JOIN pacientes p ON p.id_paciente = pp.id_paciente

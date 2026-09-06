@@ -1,0 +1,52 @@
+{
+  "expo": {
+    "name": "Optica Integral",
+    "slug": "optica-integral-movil",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "opticaintegral",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1A3A6B"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.opticaintegral.movil",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Se usa la camara para que puedas probarte las monturas virtualmente.",
+        "NSPhotoLibraryUsageDescription": "Se accede a tus fotos para que puedas probarte una montura sobre una imagen existente."
+      }
+    },
+    "android": {
+      "package": "com.opticaintegral.movil",
+      "adaptiveIcon": {
+        "backgroundColor": "#1A3A6B"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "usesCleartextTraffic": true
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Se accede a tus fotos para que puedas probarte una montura sobre una imagen existente."
+        }
+      ],
+      "expo-asset",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
+    }
+  }
+}
