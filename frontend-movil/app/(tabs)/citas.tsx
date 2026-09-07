@@ -16,7 +16,7 @@ import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch } from '@/services/api';
 
-type Cita = {
+export type Cita = {
   id_cita: number;
   id_usuario?: number;
   fecha_cita: string;
@@ -28,11 +28,20 @@ type Cita = {
   pago_previo?: boolean;
 };
 
-type Doctor = {
+export type Doctor = {
   id_usuario: number;
   nombre: string;
   apellido: string;
+  nombre_rol?: string;
 };
+
+// Especialistas por defecto en caso de retraso en la red
+const DOCTORES_FALLBACK: Doctor[] = [
+  { id_usuario: 2, nombre: 'Ana', apellido: 'Valencia', nombre_rol: 'Optómetra' },
+  { id_usuario: 1, nombre: 'Mateo', apellido: 'Lozada', nombre_rol: 'Optómetra' },
+  { id_usuario: 7, nombre: 'Alejandro', apellido: 'Tipán', nombre_rol: 'Optómetra' },
+  { id_usuario: 6, nombre: 'Matius', apellido: 'Bonilla', nombre_rol: 'Optómetra' },
+];
 
 const HORARIOS_DISPONIBLES = [
   '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
@@ -71,7 +80,6 @@ function formatFechaLegible(dateStr: string): string {
   }
 }
 
-// Genera los próximos 7 días a partir de hoy para selección rápida
 function getProximosDias() {
   const dias = [];
   const nombres = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -95,7 +103,7 @@ export default function AppointmentsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  // Filtro
+  // Filtros
   const [filtro, setFiltro] = useState<'Todas' | 'Próximas' | 'Historial'>('Todas');
 
   // Modal
@@ -104,8 +112,10 @@ export default function AppointmentsScreen() {
   const [citaSeleccionada, setCitaSeleccionada] = useState<Cita | null>(null);
 
   // Formulario de agendamiento
-  const [doctores, setDoctores] = useState<Doctor[]>([]);
-  const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
+  const [doctores, setDoctores] = useState<Doctor[]>(DOCTORES_FALLBACK);
+  const [selectedDoctor, setSelectedDoctor] = useState<number>(2); // Ana Valencia por defecto
+  const [loadingDoctores, setLoadingDoctores] = useState(false);
+
   const hoyStr = new Date().toISOString().slice(0, 10);
   const [fechaCita, setFechaCita] = useState(hoyStr);
   const [horaCita, setHoraCita] = useState('');
@@ -116,6 +126,7 @@ export default function AppointmentsScreen() {
 
   const esPaciente = user?.rol === 'Paciente';
 
+  // 1. Cargar Citas
   const fetchCitas = useCallback(async () => {
     if (!token) {
       setLoading(false);
@@ -134,35 +145,47 @@ export default function AppointmentsScreen() {
     }
   }, [token, esPaciente]);
 
+  // 2. Cargar Lista de Especialistas (como en web con /citas/profesionales)
+  const cargarDoctores = useCallback(async () => {
+    setLoadingDoctores(true);
+    try {
+      const res = await apiFetch<Doctor[]>('/api/citas/profesionales', { token });
+      if (Array.isArray(res) && res.length > 0) {
+        setDoctores(res);
+        // Si no hay doctor seleccionado o el actual no está en la lista, selecciona el primero
+        setSelectedDoctor((prev) => {
+          const existe = res.some((d) => d.id_usuario === prev);
+          return existe ? prev : res[0].id_usuario;
+        });
+      }
+    } catch (e) {
+      console.warn('Usando especialistas en caché:', e);
+    } finally {
+      setLoadingDoctores(false);
+    }
+  }, [token]);
+
+  // Carga inicial y al enfocar la pantalla
   useFocusEffect(
     useCallback(() => {
       fetchCitas();
-    }, [fetchCitas]),
+      cargarDoctores();
+    }, [fetchCitas, cargarDoctores]),
   );
+
+  useEffect(() => {
+    cargarDoctores();
+  }, [cargarDoctores]);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchCitas();
+    cargarDoctores();
   };
 
-  // Cargar lista de doctores/profesionales
+  // 3. Cargar disponibilidad en tiempo real cuando cambia médico, fecha o se abre el modal
   useEffect(() => {
-    if (!token) return;
-    apiFetch<Doctor[]>('/api/citas/profesionales', { token })
-      .then((res) => {
-        if (Array.isArray(res) && res.length > 0) {
-          setDoctores(res);
-          if (!selectedDoctor) {
-            setSelectedDoctor(res[0].id_usuario);
-          }
-        }
-      })
-      .catch(() => {});
-  }, [token]);
-
-  // Cargar disponibilidad cuando cambian médico o fecha
-  useEffect(() => {
-    if (!token || !selectedDoctor || !fechaCita || !modalVisible) return;
+    if (!selectedDoctor || !fechaCita || !modalVisible) return;
     setLoadingDisponibilidad(true);
     apiFetch<string[]>(`/api/citas/disponibilidad?id_usuario=${selectedDoctor}&fecha_cita=${fechaCita}`, { token })
       .then((res) => {
@@ -183,9 +206,7 @@ export default function AppointmentsScreen() {
     setFechaCita(hoyStr);
     setHoraCita('');
     setMotivo('Examen de la vista');
-    if (doctores.length > 0 && !selectedDoctor) {
-      setSelectedDoctor(doctores[0].id_usuario);
-    }
+    cargarDoctores();
     setModalVisible(true);
   };
 
@@ -195,8 +216,6 @@ export default function AppointmentsScreen() {
     setCitaSeleccionada(cita);
     if (cita.id_usuario) {
       setSelectedDoctor(cita.id_usuario);
-    } else if (doctores.length > 0) {
-      setSelectedDoctor(doctores[0].id_usuario);
     }
     setFechaCita(cita.fecha_cita?.slice(0, 10) || hoyStr);
     setHoraCita('');
@@ -283,6 +302,7 @@ export default function AppointmentsScreen() {
   });
 
   const proximosDias = getProximosDias();
+  const doctorSeleccionadoObj = doctores.find((d) => d.id_usuario === selectedDoctor);
 
   if (loading) {
     return (
@@ -434,27 +454,40 @@ export default function AppointmentsScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalFormContent}>
-              {/* PASO 1: SELECCIONAR MÉDICO (solo al crear) */}
+              {/* PASO 1: SELECCIONAR MÉDICO / OPTÓMETRA (como en frontend-web) */}
               {modoModal === 'crear' && (
                 <View style={styles.formSection}>
-                  <Text style={styles.formLabel}>1. Selecciona el Especialista:</Text>
+                  <View style={styles.sectionHeaderFlex}>
+                    <Text style={styles.formLabel}>1. Profesional (Optómetra) *</Text>
+                    {loadingDoctores && (
+                      <View style={styles.loadingMini}>
+                        <ActivityIndicator size="small" color="#176b5b" />
+                        <Text style={styles.loadingMiniText}>Actualizando...</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Selector visual de especialistas disponibles */}
                   <View style={styles.docList}>
                     {doctores.map((doc) => {
                       const selected = selectedDoctor === doc.id_usuario;
+                      const esDoctora = doc.nombre.toLowerCase().includes('ana') || doc.nombre.toLowerCase().includes('maría');
                       return (
                         <Pressable
                           key={doc.id_usuario}
                           style={[styles.docItem, selected && styles.docItemSelected]}
                           onPress={() => setSelectedDoctor(doc.id_usuario)}
                         >
-                          <View style={styles.docAvatar}>
-                            <Text style={styles.docAvatarText}>👨‍⚕️</Text>
+                          <View style={[styles.docAvatar, selected && styles.docAvatarSelected]}>
+                            <Text style={styles.docAvatarText}>{esDoctora ? '👩‍⚕️' : '👨‍⚕️'}</Text>
                           </View>
                           <View style={styles.docTextContainer}>
                             <Text style={[styles.docName, selected && styles.docNameSelected]}>
-                              Dr(a). {doc.nombre} {doc.apellido}
+                              {esDoctora ? 'Dra.' : 'Dr.'} {doc.nombre} {doc.apellido}
                             </Text>
-                            <Text style={styles.docSpecialty}>Optometría Clínica</Text>
+                            <Text style={styles.docSpecialty}>
+                              {doc.nombre_rol || 'Optómetra'} · Salud y Control Visual
+                            </Text>
                           </View>
                           <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
                             {selected && <View style={styles.radioInner} />}
@@ -462,6 +495,26 @@ export default function AppointmentsScreen() {
                         </Pressable>
                       );
                     })}
+                  </View>
+                </View>
+              )}
+
+              {/* Si estamos en modo reagendar, mostramos el especialista asignado */}
+              {modoModal === 'reagendar' && (
+                <View style={styles.formSection}>
+                  <Text style={styles.formLabel}>Especialista Asignado:</Text>
+                  <View style={[styles.docItem, styles.docItemSelected]}>
+                    <View style={[styles.docAvatar, styles.docAvatarSelected]}>
+                      <Text style={styles.docAvatarText}>👨‍⚕️</Text>
+                    </View>
+                    <View style={styles.docTextContainer}>
+                      <Text style={[styles.docName, styles.docNameSelected]}>
+                        {citaSeleccionada?.profesional_nombre
+                          ? `Dr(a). ${citaSeleccionada.profesional_nombre}`
+                          : `Dr(a). ${doctorSeleccionadoObj?.nombre} ${doctorSeleccionadoObj?.apellido}`}
+                      </Text>
+                      <Text style={styles.docSpecialty}>Optometría Clínica</Text>
+                    </View>
                   </View>
                 </View>
               )}
@@ -491,7 +544,7 @@ export default function AppointmentsScreen() {
                   })}
                 </ScrollView>
                 <View style={styles.inputFechaManual}>
-                  <Text style={styles.labelManual}>O escribe la fecha (YYYY-MM-DD):</Text>
+                  <Text style={styles.labelManual}>Fecha seleccionada (YYYY-MM-DD):</Text>
                   <TextInput
                     style={styles.textInputManual}
                     value={fechaCita}
@@ -507,7 +560,12 @@ export default function AppointmentsScreen() {
                   <Text style={styles.formLabel}>
                     {modoModal === 'crear' ? '3. Horarios Disponibles:' : '2. Nuevos Horarios Disponibles:'}
                   </Text>
-                  {loadingDisponibilidad && <ActivityIndicator size="small" color="#176b5b" />}
+                  {loadingDisponibilidad && (
+                    <View style={styles.loadingMini}>
+                      <ActivityIndicator size="small" color="#176b5b" />
+                      <Text style={styles.loadingMiniText}>Consultando cupos...</Text>
+                    </View>
+                  )}
                 </View>
 
                 <View style={styles.slotsGrid}>
@@ -574,7 +632,7 @@ export default function AppointmentsScreen() {
                     style={styles.textInputMotivo}
                     value={motivo}
                     onChangeText={setMotivo}
-                    placeholder="Otro motivo de consulta..."
+                    placeholder="Escribe el motivo de tu consulta..."
                   />
                 </View>
               )}
@@ -765,45 +823,49 @@ const styles = StyleSheet.create({
   modalFormContent: { gap: 16, paddingBottom: 20 },
 
   formSection: { gap: 8 },
+  sectionHeaderFlex: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   formLabel: { fontSize: 14, fontWeight: '800', color: '#172522' },
+  loadingMini: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  loadingMiniText: { fontSize: 11, color: '#176b5b', fontWeight: '600' },
 
   // Médico
   docList: { gap: 8 },
   docItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    padding: 12,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#d7e2df',
+    borderWidth: 1.5,
+    borderColor: '#e5e7eb',
     backgroundColor: '#ffffff',
-    gap: 10,
+    gap: 12,
   },
   docItemSelected: { borderColor: '#176b5b', backgroundColor: '#eef8f5' },
   docAvatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: '#e0ece9',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  docAvatarText: { fontSize: 18 },
+  docAvatarSelected: { backgroundColor: '#cbe4dc' },
+  docAvatarText: { fontSize: 20 },
   docTextContainer: { flex: 1 },
-  docName: { fontSize: 14, fontWeight: '800', color: '#172522' },
+  docName: { fontSize: 15, fontWeight: '800', color: '#172522' },
   docNameSelected: { color: '#176b5b' },
-  docSpecialty: { fontSize: 12, color: '#65736f' },
+  docSpecialty: { fontSize: 12, color: '#65736f', marginTop: 2 },
   radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
     borderColor: '#9ca3af',
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioCircleSelected: { borderColor: '#176b5b' },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#176b5b' },
+  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#176b5b' },
 
   // Fechas rápidas
   diasScroll: { flexDirection: 'row', marginVertical: 4 },

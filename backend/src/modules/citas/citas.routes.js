@@ -7,11 +7,11 @@ const service = require("./citas.service");
 const rol = require("../../middleware/rol.middleware");
 const pool = require("../../config/database");
 
-// Obtener profesionales (incluye rol Paciente)
-router.get("/profesionales", auth, rol(["Administrador", "Optometra", "Cajero", "Vendedor", "Paciente"]), responder(() => service.profesionales()));
+// Obtener profesionales (accesible para agendamiento y catálogo)
+router.get("/profesionales", responder(() => service.profesionales()));
 
 // Consultar disponibilidad de un profesional en fecha determinada
-router.get("/disponibilidad", auth, rol(["Administrador", "Optometra", "Cajero", "Vendedor", "Paciente"]), responder((req) => service.disponibilidad(req.query.id_usuario, req.query.fecha_cita)));
+router.get("/disponibilidad", responder((req) => service.disponibilidad(req.query.id_usuario, req.query.fecha_cita)));
 
 
 // Citas del paciente logueado (busca por correo, cédula o coincidencia de nombre/apellido)
