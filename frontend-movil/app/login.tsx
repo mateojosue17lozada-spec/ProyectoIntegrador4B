@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,20 +15,23 @@ import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen() {
   const { login } = useAuth();
-  const [correo, setCorreo] = useState('mateojosue17lozada@gmail.com');
-  const [password, setPassword] = useState('');
+  const [correo, setCorreo] = useState('paciente@opticaintegral.demo');
+  const [password, setPassword] = useState('123456');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!correo.trim() || !password.trim()) {
-      setError('Ingresa correo y contraseña');
+  const handleLogin = async (emailToUse?: string, passToUse?: string) => {
+    const finalEmail = (emailToUse || correo).trim();
+    const finalPass = passToUse || password;
+
+    if (!finalEmail || !finalPass) {
+      setError('Por favor ingresa correo y contraseña');
       return;
     }
     setError('');
     setLoading(true);
     try {
-      await login(correo.trim(), password);
+      await login(finalEmail, finalPass);
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally {
@@ -35,61 +39,119 @@ export default function LoginScreen() {
     }
   };
 
+  const seleccionarDemo = (rol: 'Paciente' | 'Admin') => {
+    if (rol === 'Paciente') {
+      setCorreo('paciente@opticaintegral.demo');
+      setPassword('123456');
+      setError('');
+    } else {
+      setCorreo('mateojosue17lozada@gmail.com');
+      setPassword('123456');
+      setError('');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>OI</Text>
-          </View>
-          <Text style={styles.title}>Óptica Integral</Text>
-          <Text style={styles.subtitle}>Panel Móvil</Text>
-        </View>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Correo electrónico</Text>
-            <TextInput
-              style={styles.input}
-              value={correo}
-              onChangeText={setCorreo}
-              placeholder="tu@correo.com"
-              placeholderTextColor="#8a9692"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoText}>OI</Text>
+            </View>
+            <Text style={styles.title}>Óptica Integral</Text>
+            <Text style={styles.subtitle}>Aplicación Móvil</Text>
           </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contraseña</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              placeholderTextColor="#8a9692"
-              secureTextEntry
-            />
+          {/* Botones de Acceso Rápido para Pruebas */}
+          <View style={styles.demoBox}>
+            <Text style={styles.demoTitle}>Selecciona un perfil para probar:</Text>
+            <View style={styles.demoButtonsRow}>
+              <Pressable
+                style={[
+                  styles.btnDemo,
+                  correo === 'paciente@opticaintegral.demo' && styles.btnDemoActive,
+                ]}
+                onPress={() => seleccionarDemo('Paciente')}
+              >
+                <Text style={styles.btnDemoIcon}>👤</Text>
+                <Text
+                  style={[
+                    styles.btnDemoText,
+                    correo === 'paciente@opticaintegral.demo' && styles.btnDemoTextActive,
+                  ]}
+                >
+                  Paciente
+                </Text>
+                <Text style={styles.btnDemoSub}>Citas y Agendar</Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.btnDemo,
+                  correo === 'mateojosue17lozada@gmail.com' && styles.btnDemoActive,
+                ]}
+                onPress={() => seleccionarDemo('Admin')}
+              >
+                <Text style={styles.btnDemoIcon}>📊</Text>
+                <Text
+                  style={[
+                    styles.btnDemoText,
+                    correo === 'mateojosue17lozada@gmail.com' && styles.btnDemoTextActive,
+                  ]}
+                >
+                  Administrador
+                </Text>
+                <Text style={styles.btnDemoSub}>Solo Reportes</Text>
+              </Pressable>
+            </View>
           </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Correo electrónico</Text>
+              <TextInput
+                style={styles.input}
+                value={correo}
+                onChangeText={setCorreo}
+                placeholder="tu@correo.com"
+                placeholderTextColor="#8a9692"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
 
-          <Pressable
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Iniciar sesión</Text>
-            )}
-          </Pressable>
-        </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Contraseña</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                placeholderTextColor="#8a9692"
+                secureTextEntry
+              />
+            </View>
+
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <Pressable
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={() => handleLogin()}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Iniciar Sesión</Text>
+              )}
+            </Pressable>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -102,40 +164,95 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     padding: 24,
+    gap: 20,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
   },
   logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
+    width: 74,
+    height: 74,
+    borderRadius: 20,
     backgroundColor: '#163b35',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   logoText: {
     color: '#fff',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '900',
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '900',
     color: '#172522',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#65736f',
-    marginTop: 4,
+    marginTop: 2,
   },
+
+  // Demo box
+  demoBox: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#d7e2df',
+    gap: 10,
+  },
+  demoTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#172522',
+    textAlign: 'center',
+  },
+  demoButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  btnDemo: {
+    flex: 1,
+    backgroundColor: '#f8faf9',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#d7e2df',
+    paddingVertical: 10,
+    alignItems: 'center',
+    gap: 2,
+  },
+  btnDemoActive: {
+    borderColor: '#176b5b',
+    backgroundColor: '#eef8f5',
+  },
+  btnDemoIcon: {
+    fontSize: 20,
+  },
+  btnDemoText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#4b5563',
+  },
+  btnDemoTextActive: {
+    color: '#176b5b',
+  },
+  btnDemoSub: {
+    fontSize: 10,
+    color: '#6b7280',
+    fontWeight: '600',
+  },
+
   form: {
-    gap: 16,
+    gap: 14,
   },
   inputGroup: {
     gap: 6,
@@ -146,13 +263,13 @@ const styles = StyleSheet.create({
     color: '#1d2927',
   },
   input: {
-    minHeight: 50,
+    minHeight: 48,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#d7e2df',
     backgroundColor: '#fff',
     paddingHorizontal: 14,
-    fontSize: 16,
+    fontSize: 15,
     color: '#172522',
   },
   error: {
@@ -161,19 +278,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    minHeight: 52,
+    minHeight: 50,
     borderRadius: 8,
     backgroundColor: '#176b5b',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 6,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '900',
   },
 });

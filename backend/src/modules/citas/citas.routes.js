@@ -15,7 +15,7 @@ router.get("/disponibilidad", auth, rol(["Administrador", "Optometra", "Cajero",
 
 
 // Citas del paciente logueado (busca por correo, cédula o coincidencia de nombre/apellido)
-router.get("/mis-citas", auth, rol(["Paciente"]), responder(async (req) => {
+router.get("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
     const p = await pool.query(
         `SELECT id_paciente FROM pacientes 
          WHERE correo = $1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula = $2)
@@ -39,7 +39,7 @@ router.get("/mis-citas", auth, rol(["Paciente"]), responder(async (req) => {
 }));
 
 // Paciente agenda su propia cita
-router.post("/mis-citas", auth, rol(["Paciente"]), responder(async (req) => {
+router.post("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
     // Buscar o crear registro de paciente
     let p = await pool.query("SELECT id_paciente FROM pacientes WHERE correo=$1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula=$2)", [req.usuario.correo, req.usuario.cedula || '']);
     let id_paciente = p.rows[0]?.id_paciente;
@@ -56,7 +56,7 @@ router.post("/mis-citas", auth, rol(["Paciente"]), responder(async (req) => {
 }, 201));
 
 // Paciente me cancela su cita
-router.post("/mis-citas/:id/cancelar", auth, rol(["Paciente"]), responder(async (req) => {
+router.post("/mis-citas/:id/cancelar", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
     const { id } = req.params;
     const cita = await pool.query("SELECT * FROM citas WHERE id_cita=$1", [id]);
     if (!cita.rows[0]) throw Object.assign(new Error("Cita no encontrada"), { status: 404 });
@@ -65,7 +65,7 @@ router.post("/mis-citas/:id/cancelar", auth, rol(["Paciente"]), responder(async 
 }));
 
 // Paciente reagenda su cita
-router.post("/mis-citas/:id/reagendar", auth, rol(["Paciente"]), responder(async (req) => {
+router.post("/mis-citas/:id/reagendar", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
     const { id } = req.params;
     const { fecha_cita, hora_cita } = req.body;
     if (!fecha_cita || !hora_cita) throw Object.assign(new Error("Nueva fecha y hora son requeridas"), { status: 400 });
