@@ -1,0 +1,959 @@
+
+> backend@1.0.0 dev
+> nodemon ./src/server.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Servidor corriendo puerto 3000
+Base conectada
+[ { now: 2026-06-30T04:17:33.552Z } ]
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+Servidor corriendo puerto 3000
+Usuario no encontrado
+Credenciales incorrectas. Intento 1 de 3
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Servidor corriendo puerto 3000
+Connection terminated due to connection timeout
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+error: duplicate key value violates unique constraint "pacientes_cedula_key"
+    at C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.service.js:43:16)
+    at async exports.crear (C:\Users\mateo\Desktop\ProyectoIntegrador4B\backend\src\modules\pacientes\pacientes.controller.js:16:26) {
+  length: 217,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (cedula)=(1717171717) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'pacientes',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pacientes_cedula_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+◇ injected env (2) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Servidor corriendo puerto 3000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+◇ injected env (2) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+Servidor corriendo puerto 3000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Servidor corriendo puerto 3000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Servidor corriendo puerto 3000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node ./src/server.js`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+◇ injected env (2) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+[32m[nodemon] starting `node ./src/server.js`[39m
+◇ injected env (2) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Servidor corriendo puerto 3000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
