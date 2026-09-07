@@ -13,10 +13,17 @@ const getBaseUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl) return envUrl.replace(/\/+$/, '');
 
+  // ⚠️ CAMBIADO: Ahora usa HTTPS para producción
+  // Si estás en modo desarrollo y quieres usar localhost, descomenta lo de abajo
+  /*
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:3000';
   }
   return 'http://localhost:3000';
+  */
+
+  // ✅ Por defecto, usa la URL de producción en HTTPS
+  return 'https://optica-integral.duckdns.org';
 };
 
 export const API_BASE = getBaseUrl();

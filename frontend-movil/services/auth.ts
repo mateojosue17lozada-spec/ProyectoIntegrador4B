@@ -20,3 +20,17 @@ export async function login(correo: string, password: string): Promise<LoginResp
 export async function getProfile(token: string) {
   return apiFetch<{ usuario: LoginResponse['usuario'] }>('/api/auth/profile', { token });
 }
+
+export async function logout(token: string) {
+  return apiFetch('/api/auth/logout', { 
+    method: 'POST',
+    token,
+  });
+}
+
+export async function register(userData: any) {
+  return apiFetch('/api/auth/register', {
+    method: 'POST',
+    body: userData,
+  });
+}
