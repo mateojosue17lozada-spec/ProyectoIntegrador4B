@@ -8,3 +8,5 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+// Build version: 1.0.1 - Cache Invalidation
+
