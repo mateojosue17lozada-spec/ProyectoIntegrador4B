@@ -16,11 +16,22 @@ router.get("/disponibilidad", responder((req) => service.disponibilidad(req.quer
 
 // Citas del paciente logueado (busca por correo, cédula o coincidencia de nombre/apellido)
 router.get("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
+    // Fetch full user record from DB since JWT/auth middleware only has id, nombre, correo, rol
+    const userRow = await pool.query(
+        "SELECT nombre, apellido, correo, cedula FROM usuarios WHERE id_usuario = $1",
+        [req.usuario.id]
+    );
+    const usr = userRow.rows[0] || {};
+    const correo = usr.correo || req.usuario.correo || '';
+    const cedula = usr.cedula || '';
+    const nombre = usr.nombre || req.usuario.nombre || '';
+    const apellido = usr.apellido || '';
+
     const p = await pool.query(
         `SELECT id_paciente FROM pacientes 
          WHERE correo = $1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula = $2)
             OR (LOWER(nombre) = LOWER($3) AND LOWER(apellido) = LOWER($4))`,
-        [req.usuario.correo, req.usuario.cedula || '', req.usuario.nombre || '', req.usuario.apellido || '']
+        [correo, cedula, nombre, apellido]
     );
     if (!p.rows.length) return [];
     const ids = p.rows.map(r => r.id_paciente);
@@ -40,12 +51,17 @@ router.get("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(asy
 
 // Paciente agenda su propia cita
 router.post("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
+    // Fetch full user record from DB since JWT/auth middleware doesn't include cedula/apellido
+    const userRow = await pool.query("SELECT * FROM usuarios WHERE id_usuario=$1", [req.usuario.id]);
+    const row = userRow.rows[0] || {};
+
     // Buscar o crear registro de paciente
-    let p = await pool.query("SELECT id_paciente FROM pacientes WHERE correo=$1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula=$2)", [req.usuario.correo, req.usuario.cedula || '']);
+    let p = await pool.query(
+        "SELECT id_paciente FROM pacientes WHERE correo=$1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula=$2)",
+        [row.correo || req.usuario.correo, row.cedula || '']
+    );
     let id_paciente = p.rows[0]?.id_paciente;
     if (!id_paciente) {
-        const u = await pool.query("SELECT * FROM usuarios WHERE id_usuario=$1", [req.usuario.id]);
-        const row = u.rows[0];
         const p2 = await pool.query(
             "INSERT INTO pacientes(nombre,apellido,correo,cedula,telefono,fecha_nacimiento,genero,ocupacion,lugar_nacimiento,direccion) VALUES($1,$2,$3,$4,$5,CURRENT_DATE,'Otro','Sin especificar','Sin especificar','Sin especificar') RETURNING id_paciente",
             [row.nombre, row.apellido || '', row.correo, row.cedula || '0000000000', row.telefono || '0000000000']
