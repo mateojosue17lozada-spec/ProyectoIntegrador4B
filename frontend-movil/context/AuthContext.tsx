@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(TOKEN_KEY),
           AsyncStorage.getItem(USER_KEY),
         ]);
-        if (savedToken && savedUser) {
+        if (savedToken && savedToken !== 'undefined' && savedToken !== 'null' && savedUser) {
           setToken(savedToken);
           setUser(JSON.parse(savedUser));
         }
@@ -52,10 +52,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (correo: string, password: string) => {
     const data = await loginApi(correo, password);
-    setToken(data.token);
+    const validToken = data?.token || null;
+    setToken(validToken);
     setUser(data.usuario);
-    await AsyncStorage.setItem(TOKEN_KEY, data.token);
-    await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.usuario));
+    if (validToken) {
+      await AsyncStorage.setItem(TOKEN_KEY, validToken);
+    }
+    if (data.usuario) {
+      await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.usuario));
+    }
   }, []);
 
   const logout = useCallback(async () => {

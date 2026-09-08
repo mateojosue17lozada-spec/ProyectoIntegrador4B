@@ -19,8 +19,11 @@ exports.login = async (req, res) => {
             maxAge: 8 * 60 * 60 * 1000 // 8 horas
         });
 
-        const { token, ...respuestaJSON } = resultado;
-        res.json(respuestaJSON);
+        // Retornar en JSON para clientes móviles y API, manteniendo cookie para web
+        res.json({
+            ...resultado,
+            token: resultado.token
+        });
     } catch (error) {
         logger.warn("Inicio de sesion rechazado", { eventCode: "LOGIN_REJECTED", reason: error.internalCode || "INVALID_CREDENTIALS" });
         

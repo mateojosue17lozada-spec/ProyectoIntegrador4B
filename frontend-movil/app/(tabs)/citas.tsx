@@ -23,9 +23,13 @@ export type Cita = {
   hora_cita: string;
   estado: string;
   motivo?: string;
+  motivo_cancelacion?: string;
+  observacion?: string;
   paciente_nombre?: string;
   profesional_nombre?: string;
   pago_previo?: boolean;
+  actualizado_en?: string;
+  creado_en?: string;
 };
 
 export type Doctor = {
@@ -104,7 +108,7 @@ export default function AppointmentsScreen() {
   const [error, setError] = useState('');
 
   // Filtros
-  const [filtro, setFiltro] = useState<'Todas' | 'Próximas' | 'Historial'>('Todas');
+  const [filtro, setFiltro] = useState<'Todas' | 'Pendientes' | 'Confirmadas' | 'Canceladas' | 'Historial'>('Todas');
 
   // Modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -124,9 +128,7 @@ export default function AppointmentsScreen() {
   const [loadingDisponibilidad, setLoadingDisponibilidad] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
-  const esPaciente = user?.rol === 'Paciente';
-
-  // 1. Cargar Citas
+  // 1. Cargar Citas: siempre consulta las citas del usuario (paciente o administrador actuando como cliente)
   const fetchCitas = useCallback(async () => {
     if (!token) {
       setLoading(false);
@@ -134,16 +136,23 @@ export default function AppointmentsScreen() {
     }
     setError('');
     try {
-      const endpoint = esPaciente ? '/api/citas/mis-citas' : '/api/citas';
-      const data = await apiFetch<Cita[]>(endpoint, { token });
+      // Endpoint principal: mis citas como paciente
+      const data = await apiFetch<Cita[]>('/api/citas/mis-citas', { token });
       setCitas(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      setError(err.message || 'Error al cargar citas');
+      console.warn('Fallo /api/citas/mis-citas:', err?.message);
+      // Fallback a /api/citas si es rol de staff
+      try {
+        const staffData = await apiFetch<Cita[]>('/api/citas', { token });
+        setCitas(Array.isArray(staffData) ? staffData : []);
+      } catch (fallbackErr: any) {
+        setError(err?.message || 'Error al cargar citas');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, esPaciente]);
+  }, [token]);
 
   // 2. Cargar Lista de Especialistas (como en web con /citas/profesionales)
   const cargarDoctores = useCallback(async () => {
@@ -291,15 +300,26 @@ export default function AppointmentsScreen() {
   };
 
   // Filtrado de citas
+  const conteoPendientes = citas.filter((c) => c.estado === 'Pendiente').length;
+  const conteoConfirmadas = citas.filter((c) => ['Confirmada', 'Pagada'].includes(c.estado)).length;
+  const conteoCanceladas = citas.filter((c) => c.estado === 'Cancelada').length;
+  const conteoHistorial = citas.filter((c) => ['Atendida', 'No asistio'].includes(c.estado)).length;
+
   const citasFiltradas = citas.filter((c) => {
-    if (filtro === 'Próximas') {
-      return ['Pendiente', 'Confirmada', 'Pagada'].includes(c.estado);
-    }
-    if (filtro === 'Historial') {
-      return ['Atendida', 'Cancelada', 'No asistio'].includes(c.estado);
-    }
+    if (filtro === 'Pendientes') return c.estado === 'Pendiente';
+    if (filtro === 'Confirmadas') return ['Confirmada', 'Pagada'].includes(c.estado);
+    if (filtro === 'Canceladas') return c.estado === 'Cancelada';
+    if (filtro === 'Historial') return ['Atendida', 'No asistio'].includes(c.estado);
     return true;
   });
+
+  const filtrosList: Array<{ id: 'Todas' | 'Pendientes' | 'Confirmadas' | 'Canceladas' | 'Historial'; label: string; count: number }> = [
+    { id: 'Todas', label: 'Todas', count: citas.length },
+    { id: 'Pendientes', label: 'Pendientes', count: conteoPendientes },
+    { id: 'Confirmadas', label: 'Confirmadas', count: conteoConfirmadas },
+    { id: 'Canceladas', label: 'Canceladas', count: conteoCanceladas },
+    { id: 'Historial', label: 'Historial', count: conteoHistorial },
+  ];
 
   const proximosDias = getProximosDias();
   const doctorSeleccionadoObj = doctores.find((d) => d.id_usuario === selectedDoctor);
@@ -325,18 +345,14 @@ export default function AppointmentsScreen() {
         {/* Encabezado */}
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.title}>{esPaciente ? 'Mis Citas' : 'Citas Clínicas'}</Text>
+            <Text style={styles.title}>Mis Citas</Text>
             <Text style={styles.subtitle}>
-              {esPaciente
-                ? 'Agenda, reagenda o cancela tus consultas'
-                : 'Supervisión y control de citas generales'}
+              Consulta, agenda, reagenda o cancela tus citas
             </Text>
           </View>
-          {esPaciente && (
-            <Pressable style={styles.btnNuevaCita} onPress={abrirAgendar}>
-              <Text style={styles.btnNuevaCitaText}>+ Agendar</Text>
-            </Pressable>
-          )}
+          <Pressable style={styles.btnNuevaCita} onPress={abrirAgendar}>
+            <Text style={styles.btnNuevaCitaText}>+ Agendar</Text>
+          </Pressable>
         </View>
 
         {error ? (
@@ -345,43 +361,43 @@ export default function AppointmentsScreen() {
           </View>
         ) : null}
 
-        {/* Filtros tipo Pills */}
-        <View style={styles.filterRow}>
-          {(['Todas', 'Próximas', 'Historial'] as const).map((f) => (
-            <Pressable
-              key={f}
-              style={[styles.filterChip, filtro === f && styles.filterChipActive]}
-              onPress={() => setFiltro(f)}
-            >
-              <Text style={[styles.filterChipText, filtro === f && styles.filterChipTextActive]}>
-                {f}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {/* Filtros tipo Pills con Contador */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+          <View style={styles.filterRow}>
+            {filtrosList.map((item) => (
+              <Pressable
+                key={item.id}
+                style={[styles.filterChip, filtro === item.id && styles.filterChipActive]}
+                onPress={() => setFiltro(item.id)}
+              >
+                <Text style={[styles.filterChipText, filtro === item.id && styles.filterChipTextActive]}>
+                  {item.label} ({item.count})
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
 
         {/* Listado de Citas */}
         <View style={styles.citasList}>
           {citasFiltradas.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyIcon}>🗓️</Text>
-              <Text style={styles.emptyTitle}>No hay citas {filtro.toLowerCase()}</Text>
+              <Text style={styles.emptyTitle}>No hay citas en &quot;{filtro}&quot;</Text>
               <Text style={styles.emptySubtitle}>
-                {esPaciente
-                  ? 'Presiona el botón "+ Agendar" para solicitar una cita con nuestros especialistas.'
-                  : 'No se encontraron registros de citas bajo este criterio.'}
+                {citas.length === 0
+                  ? 'No tienes citas registradas. Presiona el botón "+ Agendar" para agendar una consulta.'
+                  : `Tienes ${citas.length} citas en total, pero ninguna bajo el filtro de ${filtro}.`}
               </Text>
-              {esPaciente && (
-                <Pressable style={styles.btnEmptyAgendar} onPress={abrirAgendar}>
-                  <Text style={styles.btnEmptyAgendarText}>Agendar una Cita Ahora</Text>
-                </Pressable>
-              )}
+              <Pressable style={styles.btnEmptyAgendar} onPress={abrirAgendar}>
+                <Text style={styles.btnEmptyAgendarText}>Agendar una Cita Ahora</Text>
+              </Pressable>
             </View>
           ) : (
             citasFiltradas.map((cita) => {
-              const puedeModificar =
-                esPaciente && ['Pendiente', 'Confirmada', 'Pagada'].includes(cita.estado);
+              const puedeModificar = ['Pendiente', 'Confirmada', 'Pagada'].includes(cita.estado);
               const estiloBadge = estadoColor[cita.estado] || { text: '#176b5b', bg: '#e6f2ee' };
+              const esReagendada = Boolean(cita.actualizado_en && cita.creado_en && cita.actualizado_en !== cita.creado_en);
 
               return (
                 <View key={cita.id_cita} style={styles.citaCard}>
@@ -390,6 +406,11 @@ export default function AppointmentsScreen() {
                     <View style={styles.fechaBadge}>
                       <Text style={styles.fechaBadgeIcon}>📅</Text>
                       <Text style={styles.fechaBadgeText}>{formatFechaLegible(cita.fecha_cita)}</Text>
+                      {esReagendada && (
+                        <View style={styles.tagReagendada}>
+                          <Text style={styles.tagReagendadaText}>🔄 Reagendada</Text>
+                        </View>
+                      )}
                     </View>
                     <View style={[styles.estadoPill, { backgroundColor: estiloBadge.bg }]}>
                       <Text style={[styles.estadoPillText, { color: estiloBadge.text }]}>
@@ -407,13 +428,35 @@ export default function AppointmentsScreen() {
 
                     <View style={styles.infoDetalle}>
                       <Text style={styles.nombreDoctor} numberOfLines={1}>
-                        👨‍⚕️ {cita.profesional_nombre ? `Dr(a). ${cita.profesional_nombre}` : cita.paciente_nombre || 'Optometrista Especialista'}
+                        👨‍⚕️ {cita.profesional_nombre ? `Dr(a). ${cita.profesional_nombre}` : 'Optometrista Especialista'}
                       </Text>
                       <Text style={styles.motivoTexto}>
                         Motivo: <Text style={styles.motivoValor}>{cita.motivo || 'Examen visual general'}</Text>
                       </Text>
                     </View>
                   </View>
+
+                  {/* Si está Cancelada, mostrar motivo y botón para volver a agendar */}
+                  {cita.estado === 'Cancelada' && (
+                    <View style={styles.canceladaInfoBox}>
+                      <Text style={styles.canceladaInfoText}>
+                        Motivo cancelación: {cita.motivo_cancelacion || 'Cancelada por el paciente'}
+                      </Text>
+                      <Pressable
+                        style={styles.btnReagendarCancelada}
+                        onPress={() => {
+                          if (cita.id_usuario) setSelectedDoctor(cita.id_usuario);
+                          setModoModal('crear');
+                          setFechaCita(hoyStr);
+                          setHoraCita('');
+                          setMotivo(cita.motivo || 'Examen de la vista');
+                          setModalVisible(true);
+                        }}
+                      >
+                        <Text style={styles.btnReagendarCanceladaText}>📅 Volver a agendar cita</Text>
+                      </Pressable>
+                    </View>
+                  )}
 
                   {/* Fila Inferior: Botones de Acción (Reagendar / Cancelar) */}
                   {puedeModificar && (
@@ -692,7 +735,8 @@ const styles = StyleSheet.create({
   errorText: { color: '#d64545', fontWeight: '700' },
 
   // Filtros
-  filterRow: { flexDirection: 'row', gap: 8 },
+  filterScroll: { marginHorizontal: -4 },
+  filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 4 },
   filterChip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
@@ -704,6 +748,44 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: '#176b5b', borderColor: '#176b5b' },
   filterChipText: { fontSize: 13, fontWeight: '700', color: '#65736f' },
   filterChipTextActive: { color: '#ffffff' },
+
+  tagReagendada: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  tagReagendadaText: {
+    color: '#0369a1',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+
+  canceladaInfoBox: {
+    backgroundColor: '#fff5f5',
+    borderWidth: 1,
+    borderColor: '#fed7d7',
+    borderRadius: 8,
+    padding: 10,
+    gap: 8,
+  },
+  canceladaInfoText: {
+    fontSize: 12,
+    color: '#c53030',
+    fontWeight: '600',
+  },
+  btnReagendarCancelada: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#176b5b',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  btnReagendarCanceladaText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
 
   // Listado de Citas
   citasList: { gap: 14 },

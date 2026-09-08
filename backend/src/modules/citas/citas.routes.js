@@ -15,10 +15,10 @@ router.get("/disponibilidad", responder((req) => service.disponibilidad(req.quer
 
 
 // Citas del paciente logueado (busca por correo, cédula o coincidencia de nombre/apellido)
-router.get("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
+router.get("/mis-citas", auth, responder(async (req) => {
     // Fetch full user record from DB since JWT/auth middleware only has id, nombre, correo, rol
     const userRow = await pool.query(
-        "SELECT nombre, apellido, correo, cedula FROM usuarios WHERE id_usuario = $1",
+        "SELECT nombre, apellido, correo, cedula, telefono FROM usuarios WHERE id_usuario = $1",
         [req.usuario.id]
     );
     const usr = userRow.rows[0] || {};
@@ -27,13 +27,19 @@ router.get("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(asy
     const nombre = usr.nombre || req.usuario.nombre || '';
     const apellido = usr.apellido || '';
 
-    const p = await pool.query(
+    let p = await pool.query(
         `SELECT id_paciente FROM pacientes 
          WHERE correo = $1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula = $2)
             OR (LOWER(nombre) = LOWER($3) AND LOWER(apellido) = LOWER($4))`,
         [correo, cedula, nombre, apellido]
     );
-    if (!p.rows.length) return [];
+    if (!p.rows.length) {
+        const p2 = await pool.query(
+            "INSERT INTO pacientes(nombre,apellido,correo,cedula,telefono,fecha_nacimiento,genero,ocupacion,lugar_nacimiento,direccion) VALUES($1,$2,$3,$4,$5,CURRENT_DATE,'Otro','Sin especificar','Sin especificar','Sin especificar') RETURNING id_paciente",
+            [nombre || req.usuario.nombre || 'Paciente', apellido || '', correo, cedula || '0000000000', usr.telefono || '0000000000']
+        );
+        p = p2;
+    }
     const ids = p.rows.map(r => r.id_paciente);
     return (await pool.query(
         `SELECT c.*, concat_ws(' ', u.nombre, u.apellido) AS profesional_nombre,
@@ -44,35 +50,37 @@ router.get("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(asy
          WHERE c.id_paciente = ANY($1::int[])
          GROUP BY c.id_cita, u.nombre, u.apellido
          ORDER BY c.fecha_cita DESC, c.hora_cita DESC
-         LIMIT 30`,
+         LIMIT 50`,
         [ids]
     )).rows;
 }));
 
 // Paciente agenda su propia cita
-router.post("/mis-citas", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
+router.post("/mis-citas", auth, responder(async (req) => {
     // Fetch full user record from DB since JWT/auth middleware doesn't include cedula/apellido
     const userRow = await pool.query("SELECT * FROM usuarios WHERE id_usuario=$1", [req.usuario.id]);
     const row = userRow.rows[0] || {};
 
     // Buscar o crear registro de paciente
     let p = await pool.query(
-        "SELECT id_paciente FROM pacientes WHERE correo=$1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula=$2)",
-        [row.correo || req.usuario.correo, row.cedula || '']
+        `SELECT id_paciente FROM pacientes 
+         WHERE correo=$1 OR (cedula IS NOT NULL AND cedula <> '' AND cedula=$2)
+            OR (LOWER(nombre)=LOWER($3) AND LOWER(apellido)=LOWER($4))`,
+        [row.correo || req.usuario.correo, row.cedula || '', row.nombre || '', row.apellido || '']
     );
     let id_paciente = p.rows[0]?.id_paciente;
     if (!id_paciente) {
         const p2 = await pool.query(
             "INSERT INTO pacientes(nombre,apellido,correo,cedula,telefono,fecha_nacimiento,genero,ocupacion,lugar_nacimiento,direccion) VALUES($1,$2,$3,$4,$5,CURRENT_DATE,'Otro','Sin especificar','Sin especificar','Sin especificar') RETURNING id_paciente",
-            [row.nombre, row.apellido || '', row.correo, row.cedula || '0000000000', row.telefono || '0000000000']
+            [row.nombre || req.usuario.nombre || 'Paciente', row.apellido || '', row.correo || req.usuario.correo, row.cedula || '0000000000', row.telefono || '0000000000']
         );
         id_paciente = p2.rows[0].id_paciente;
     }
     return service.crear({ ...req.body, id_paciente });
 }, 201));
 
-// Paciente me cancela su cita
-router.post("/mis-citas/:id/cancelar", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
+// Paciente cancela su cita
+router.post("/mis-citas/:id/cancelar", auth, responder(async (req) => {
     const { id } = req.params;
     const cita = await pool.query("SELECT * FROM citas WHERE id_cita=$1", [id]);
     if (!cita.rows[0]) throw Object.assign(new Error("Cita no encontrada"), { status: 404 });
@@ -81,7 +89,7 @@ router.post("/mis-citas/:id/cancelar", auth, rol(["Paciente", "Administrador"]),
 }));
 
 // Paciente reagenda su cita
-router.post("/mis-citas/:id/reagendar", auth, rol(["Paciente", "Administrador"]), responder(async (req) => {
+router.post("/mis-citas/:id/reagendar", auth, responder(async (req) => {
     const { id } = req.params;
     const { fecha_cita, hora_cita } = req.body;
     if (!fecha_cita || !hora_cita) throw Object.assign(new Error("Nueva fecha y hora son requeridas"), { status: 400 });

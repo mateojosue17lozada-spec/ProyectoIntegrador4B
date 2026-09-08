@@ -69,7 +69,20 @@ export async function apiFetch<T = unknown>(
   // Handle 204 No Content
   if (res.status === 204) return undefined as T;
 
-  return res.json() as Promise<T>;
+  const data = (await res.json()) as any;
+
+  // Fallback de resiliencia: Si la API de producción envió el token en Set-Cookie en lugar del body JSON
+  if (data && typeof data === 'object' && !data.token) {
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      const match = setCookie.match(/token=([^;]+)/);
+      if (match && match[1]) {
+        data.token = match[1];
+      }
+    }
+  }
+
+  return data as T;
 }
 
 export class ApiError extends Error {
