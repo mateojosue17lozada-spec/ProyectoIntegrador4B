@@ -20,16 +20,18 @@ const filtro = () => {
     };
 };
 
-/** GET /reportes/citas?fecha_inicio&fecha_fin&medico&estado */
+/** GET /reportes/citas?fecha_inicio&fecha_fin&medico&estado&paciente */
 exports.citas = async (q = {}) => {
     const f = filtro();
     if (q.fecha_inicio) f.add("c.fecha_cita >= $$::date", q.fecha_inicio);
     if (q.fecha_fin) f.add("c.fecha_cita <= $$::date", q.fecha_fin);
     if (q.medico) f.add("c.id_usuario = $$", Number(q.medico));
-    if (q.estado) f.add("c.estado = $$", q.estado);
+    if (q.estado && q.estado !== "Todos") f.add("c.estado = $$", q.estado);
+    if (q.paciente) f.add("(pa.cedula ILIKE $$ OR concat_ws(' ', pa.nombre, pa.apellido) ILIKE $$)", `%${q.paciente}%`);
 
     const r = await pool.query(
         `SELECT c.id_cita, c.fecha_cita, c.hora_cita, c.estado, c.motivo, c.consultorio,
+                pa.cedula AS identificacion,
                 concat_ws(' ', pa.nombre, pa.apellido) AS paciente,
                 concat_ws(' ', us.nombre, us.apellido) AS profesional
          FROM citas c

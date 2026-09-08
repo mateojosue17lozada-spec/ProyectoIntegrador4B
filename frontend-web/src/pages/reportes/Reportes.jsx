@@ -13,10 +13,11 @@ const REPORTES = {
   citas: {
     titulo: "Citas",
     endpoint: "/reportes/citas",
-    filtros: ["fecha_inicio", "fecha_fin", "medico", "estado"],
+    filtros: ["fecha_inicio", "fecha_fin", "medico", "estado", "paciente"],
     columnas: [
       { k: "fecha_cita", label: "Fecha", fmt: fecha },
       { k: "hora_cita", label: "Hora", fmt: (v) => (v ? String(v).slice(0, 5) : "—") },
+      { k: "identificacion", label: "Cédula / ID" },
       { k: "paciente", label: "Paciente" },
       { k: "profesional", label: "Profesional" },
       { k: "motivo", label: "Motivo" },
@@ -95,6 +96,7 @@ const ETIQUETA_FILTRO = {
   tipo_pago: "Forma de pago",
   categoria: "Categoría",
   stock_minimo: "Solo stock bajo",
+  paciente: "Paciente o Cédula",
 };
 
 // Genera y descarga un CSV a partir de las filas y columnas visibles.
@@ -272,11 +274,25 @@ export default function Reportes() {
                 ))}
               </select>
             </label>
+          ) : f === "estado" ? (
+            <label key={f}>
+              Estado
+              <select
+                value={filtros[f] || ""}
+                onChange={(e) => setFiltros({ ...filtros, [f]: e.target.value })}
+              >
+                <option value="">Todos los estados</option>
+                {["Pendiente", "Confirmada", "En atención", "Atendida", "Cancelada", "No asistio"].map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
+            </label>
           ) : (
             <label key={f}>
               {ETIQUETA_FILTRO[f] || f}
               <input
                 type={f.startsWith("fecha") ? "date" : "text"}
+                placeholder={f === "paciente" ? "Nombre o cédula..." : ""}
                 value={filtros[f] || ""}
                 onChange={(e) => setFiltros({ ...filtros, [f]: e.target.value })}
               />
